@@ -12,7 +12,7 @@ public class main {
 		StringBuilder sb = new StringBuilder();
 		int nx = 2000;
 		int ny = 1000;
-		int accuracy = 1;
+		int accuracy = 100;
 		
 		// Create all hitable spheres
 		Random rand = new Random();
@@ -26,8 +26,10 @@ public class main {
 		hitable_list world = new hitable_list(list, list.length);
 		
 		// Camera setup
-		float R = (float) Math.cos(Math.PI/4f);
-		camera cam = new camera(90f, (float)(nx)/(float)(ny));
+		Vec3 lookfrom = new Vec3(-2f, 2f, 1f);
+		Vec3 lookat = new Vec3(0f, 0f, -1f);
+		Vec3 vup = new Vec3(0f, 1f, 0f);
+		camera cam = new camera(lookfrom, lookat, vup, 90f, (float)(nx)/(float)(ny));
 		
 		sb.append("P3\n" + nx + " " + ny + "\n255\n");
 
