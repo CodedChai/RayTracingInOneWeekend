@@ -25,7 +25,7 @@ public class camera {
 				
 				// lower left corner + u * horizontal _ v * vertical
 				ray r = new ray(origin, horizontal.mul(u).add(vertical.mul(v)).add(lower_left_corner));
-				
+				Vec3 p = r.point_at_parameter(2.0f);
 				Vec3 col = color(r, world);
 				int ir = (int)(255.99 * col.r());
 				int ig = (int)(255.99 * col.g());
@@ -47,7 +47,8 @@ public class camera {
 	
 	private static Vec3 color(ray r, hitable_list world) {
 		hit_record rec = new hit_record();
-		if(world.hit(r,  0.0f, Float.MAX_VALUE, rec)) {
+		rec = world.hit(r,  0.0f, Float.MAX_VALUE, rec);
+		if(rec.valid) {
 			// Change the -1 to 1 coordinates to 0 to 1
 			// 0.5f * new Vec3(N.x() + 1f, N.y() + 1f, N.z() + 1f)
 			return rec.normal.add(1f).mul(.5f);

@@ -14,19 +14,21 @@ public class hitable_list extends hitable {
 	}
 	
 	@Override
-	public boolean hit(ray r, float t_min, float t_max, hit_record rec) {
-		hit_record temp_rec = new hit_record();
+	public hit_record hit(ray r, float t_min, float t_max, hit_record rec) {
+		hit_record curr_rec = new hit_record();
 		boolean hit_anything = false;
 		float closest_so_far = t_max;
 		for(int i = 0; i < list_size; i++) {
-			if(list.get(i).hit(r, t_min, closest_so_far, temp_rec)) {
+			curr_rec = list.get(i).hit(r, t_min, closest_so_far, curr_rec);
+			if(curr_rec.valid) {
 				hit_anything = true;
-				closest_so_far = temp_rec.t;
-				rec = temp_rec;
+				closest_so_far = curr_rec.t;
+				rec = new hit_record(curr_rec);
+
 			}
 		}
 		
-		return hit_anything;
+		return rec;
 	}
 
 }
