@@ -24,13 +24,14 @@ public class main {
 		list[4] = new sphere(new Vec3(-1f, 0f, -1f), -0.45f, new dielectric(1.5f));
 
 		hitable_list world = new hitable_list(list, list.length);
+		world = random_scene();
 		
 		// Camera setup
-		Vec3 lookfrom = new Vec3(3f, 3f, 2f);
-		Vec3 lookat = new Vec3(0f, 0f, -1f);
+		Vec3 lookfrom = new Vec3(13f, 2f, 3f);
+		Vec3 lookat = new Vec3(0f, 0f, 0f);
 		Vec3 vup = new Vec3(0f, 1f, 0f);
-		float dist_to_focus = lookfrom.sub(lookat).length();
-		float aperture = 2.0f;
+		float dist_to_focus = 10f;
+		float aperture = 0.1f;
 		
 		camera cam = new camera(lookfrom, lookat, vup, 20f, (float)(nx)/(float)(ny), aperture, dist_to_focus);
 		
@@ -61,8 +62,8 @@ public class main {
 			}
 		}
 		
-       try {  
-            Writer w = new FileWriter("DepthOfField.ppm");  
+		try {  
+            Writer w = new FileWriter("Random.ppm");  
             w.append(sb);  
             w.close();  
             long totalTime = System.nanoTime() - startTime;
@@ -104,6 +105,37 @@ public class main {
 			Vec3 blue = new Vec3(0.5f, 0.7f, 1.0f);
 			return white.mul(1.0f - t).add(blue.mul(t));
 		}
+	}
+	
+	private static hitable_list random_scene() {
+		Random rand = new Random();
+		
+		int n = 500;
+		hitable[] list = new hitable[n + 1];
+		list[0] = new sphere(new Vec3(0f, -1000f, 0f), 1000f, new lambertian(new Vec3(0.5f, 0.5f, 0.5f)));
+		int i = 1;
+		for(int a = -11; a < 11; a++) {
+			for(int b = -11; b < 11; b++) {
+				float choose_mat = rand.nextFloat();
+				Vec3 center = new Vec3(a + 0.9f * rand.nextFloat(), .2f, b + 0.9f * rand.nextFloat());
+				if((center.sub(new Vec3(4f, .2f, 0f)).length() > 0.9f)){
+					if(choose_mat < 0.5f) {	// Diffuse
+						list[i++] = new sphere(center, center.y(), new lambertian(new Vec3(rand.nextFloat() * rand.nextFloat(), rand.nextFloat() * rand.nextFloat(), rand.nextFloat() * rand.nextFloat())));
+					} else if(choose_mat < .92f) {	// Metal
+						list[i++] = new sphere(center, center.y(), new metal(
+								new Vec3(0.5f * (1 + rand.nextFloat()), 0.5f * (1 + rand.nextFloat()), 0.5f * (1 + rand.nextFloat())), rand.nextFloat()));
+					} else { // glass
+						list[i++] = new sphere(center, center.y(), new dielectric(1.5f));
+					}
+				}
+			}
+		}
+		
+		list[i++] = new sphere(new Vec3(0f, 1f, 0f), 1.0f, new dielectric(1.5f));
+		list[i++] = new sphere(new Vec3(-4f, 1f, 0f), 1.0f, new lambertian(new Vec3(.4f, .2f, .1f)));
+		list[i++] = new sphere(new Vec3(4f, 1f, 0f), 1.0f, new metal(new Vec3(.7f, .6f, .5f)));
+		
+		return new hitable_list(list, i);
 	}
 
 }

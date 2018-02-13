@@ -13,6 +13,12 @@ public class metal extends material {
 		}
 	}
 	
+	metal(Vec3 a){
+		albedo = a;
+		attenuation = albedo;
+		fuzz = 0f;
+	}
+	
 	Vec3 reflect(Vec3 v, Vec3 n) {
 		// v - 2 * dot(v, n) * n
 		return v.sub(n.mul(v.dot(n) * 2f));
