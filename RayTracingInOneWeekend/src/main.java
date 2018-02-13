@@ -26,10 +26,13 @@ public class main {
 		hitable_list world = new hitable_list(list, list.length);
 		
 		// Camera setup
-		Vec3 lookfrom = new Vec3(-2f, 2f, 1f);
+		Vec3 lookfrom = new Vec3(3f, 3f, 2f);
 		Vec3 lookat = new Vec3(0f, 0f, -1f);
 		Vec3 vup = new Vec3(0f, 1f, 0f);
-		camera cam = new camera(lookfrom, lookat, vup, 90f, (float)(nx)/(float)(ny));
+		float dist_to_focus = lookfrom.sub(lookat).length();
+		float aperture = 2.0f;
+		
+		camera cam = new camera(lookfrom, lookat, vup, 20f, (float)(nx)/(float)(ny), aperture, dist_to_focus);
 		
 		sb.append("P3\n" + nx + " " + ny + "\n255\n");
 
@@ -59,7 +62,7 @@ public class main {
 		}
 		
        try {  
-            Writer w = new FileWriter("PositionableCam.ppm");  
+            Writer w = new FileWriter("DepthOfField.ppm");  
             w.append(sb);  
             w.close();  
             long totalTime = System.nanoTime() - startTime;
