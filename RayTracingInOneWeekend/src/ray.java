@@ -2,9 +2,10 @@
 public class ray {
 	Vec3 A;
 	Vec3 B;
+	public boolean valid;
 	
 	ray(Vec3 a, Vec3 b){
-		A = a; B = b;
+		A = a; B = b; valid = true;
 	}
 	
 	public Vec3 origin() {

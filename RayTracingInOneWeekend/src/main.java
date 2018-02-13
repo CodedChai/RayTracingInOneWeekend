@@ -1,4 +1,6 @@
-import java.io.*;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Writer;
 import java.util.Random;
 
 public class main {
@@ -8,33 +10,36 @@ public class main {
 		long startTime = System.nanoTime();
 		
 		StringBuilder sb = new StringBuilder();
-		int nx = 1920;
-		int ny = 1080;
-		int ns = 100;
+		int nx = 2000;
+		int ny = 1000;
+		int accuracy = 100;
 		
 		// Create all hitable spheres
 		Random rand = new Random();
-		hitable[] list = new hitable[2];
-		list[0] = new sphere(new Vec3(0.0f, 0.0f, -1.0f),0.5f);
-		list[1] = new sphere(new Vec3(0.0f, -100.5f, -1.0f), 100);
-		hitable_list world = new hitable_list(list, 2);
+		hitable[] list = new hitable[4];
+		list[0] = new sphere(new Vec3(0.0f, 0.0f, -1.0f),0.5f, new lambertian(new Vec3(0.8f, 0.3f, 0.3f)));
+		list[1] = new sphere(new Vec3(0.0f, -100.5f, -1.0f), 100, new lambertian(new Vec3(0.8f, 0.8f, 0.0f)));
+		list[2] = new sphere(new Vec3(1f, 0f, -1f), 0.5f, new metal(new Vec3(0.8f, 0.6f, 0.2f), .0f));
+		list[3] = new sphere(new Vec3(-1f, 0f, -1f), 0.5f, new metal(new Vec3(0.8f, 0.8f, 0.8f), .8f));
+		hitable_list world = new hitable_list(list, list.length);
 		camera cam = new camera();
 		
 		sb.append("P3\n" + nx + " " + ny + "\n255\n");
+
 		for(int j = ny-1; j >=0; j--) {
 			for(int i = 0; i < nx; i++) {
 				Vec3 col = Vec3.zero();
-				for(int s = 0; s < ns; s++) {
+				for(int s = 0; s < accuracy; s++) {
 					float u = (float)(i + rand.nextFloat())/(float)(nx);
 					float v = (float)(j + rand.nextFloat())/(float)(ny);
 					
 					ray r = cam.get_ray(u, v);
 					Vec3 p = r.point_at_parameter(2.0f);
 					// col += color(r, world)
-					col = col.add(color(r, world));
+					col = col.add(color(r, world, 0));
 				}
 				// col /= ns
-				col = col.div(ns);
+				col = col.div(accuracy);
 				
 				// A basic gamma2 correction approximation. Just SQRT because they're 50% reflectors
 				col = new Vec3((float)Math.sqrt(col.r()), (float)Math.sqrt(col.g()), (float)Math.sqrt(col.b()));
@@ -47,7 +52,7 @@ public class main {
 		}
 		
        try {  
-            Writer w = new FileWriter("Diffuse.ppm");  
+            Writer w = new FileWriter("Metal.ppm");  
             w.append(sb);  
             w.close();  
             long totalTime = System.nanoTime() - startTime;
@@ -58,7 +63,7 @@ public class main {
         }  
 	}
 	
-	private static Vec3 random_in_unit_sphere() {
+	public static Vec3 random_in_unit_sphere() {
 		Vec3 p;
 		Random rand = new Random();
 
@@ -71,16 +76,18 @@ public class main {
 		return p;
 	}
 	
-	private static Vec3 color(ray r, hitable_list world) {
-		hit_record rec = new hit_record();
-		rec = world.hit(r,  0.001f, Float.MAX_VALUE, rec);
+	private static Vec3 color(ray r, hitable_list world, int depth) {
+		hit_record rec = world.hit(r,  0.001f, Float.MAX_VALUE, new hit_record());
 		if(rec.valid) {
-			Vec3 target = rec.p.add(rec.normal).add(random_in_unit_sphere());
-			
-			// Change the -1 to 1 coordinates to 0 to 1
-			// 0.5f * new Vec3(N.x() + 1f, N.y() + 1f, N.z() + 1f)
-			return color(new ray(rec.p, target.sub(rec.p)), world).mul(0.5f);
-		} else {
+			ray scattered = rec.mat.scatter(r,  rec);
+			if(depth < 50 && scattered.valid) {
+				return rec.mat.albedo.mul(color(scattered, world, depth+1));
+			} else {
+				return Vec3.zero();
+			}
+		} 
+		// Draw background
+		else {
 			Vec3 unit_direction = r.direction().normalize();
 			float t = (float) (0.5f * (unit_direction.y() + 1.0));
 			Vec3 white = new Vec3(1.0f, 1.0f, 1.0f);

@@ -2,9 +2,10 @@ public class sphere extends hitable{
 	private Vec3 center;
 	private float radius;
 	
-	sphere(Vec3 center, float radius){
+	sphere(Vec3 center, float radius, material mat){
 		this.center = center;
 		this.radius = radius;
+		this.mat = mat;
 	}
 
 	@Override

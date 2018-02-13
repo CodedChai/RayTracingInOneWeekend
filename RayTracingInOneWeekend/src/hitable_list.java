@@ -23,6 +23,7 @@ public class hitable_list extends hitable {
 			if(curr_rec.valid) {
 				hit_anything = true;
 				closest_so_far = curr_rec.t;
+				curr_rec.mat = list.get(i).mat;
 				rec = new hit_record(curr_rec);
 
 			}
