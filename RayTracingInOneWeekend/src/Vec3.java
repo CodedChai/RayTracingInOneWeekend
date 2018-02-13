@@ -112,6 +112,10 @@ public class Vec3 {
         return Math.max(x, Math.max(y, z));
     }
     
+    public static Vec3 zero() {
+    	return new Vec3(0.0f, 0.0f, 0.0f);
+    }
+    
     public String toString(){
         return "(" + x + ", " + y + ", " + z + ")";
     }
