@@ -1,9 +1,11 @@
 
 public class metal extends material {
 	public float fuzz;
+	public Vec3 albedo;
 	
 	metal(Vec3 a, float f){
 		albedo = a;
+		attenuation = albedo;
 		if(f < 1 && f >= 0) {
 			fuzz = f;
 		} else {

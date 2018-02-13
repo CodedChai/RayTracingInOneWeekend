@@ -12,17 +12,22 @@ public class main {
 		StringBuilder sb = new StringBuilder();
 		int nx = 2000;
 		int ny = 1000;
-		int accuracy = 100;
+		int accuracy = 1;
 		
 		// Create all hitable spheres
 		Random rand = new Random();
-		hitable[] list = new hitable[4];
-		list[0] = new sphere(new Vec3(0.0f, 0.0f, -1.0f),0.5f, new lambertian(new Vec3(0.8f, 0.3f, 0.3f)));
+		hitable[] list = new hitable[5];
+		list[0] = new sphere(new Vec3(0.0f, 0.0f, -1.0f), 0.5f, new lambertian(new Vec3(0.1f, 0.2f, 0.5f)));
 		list[1] = new sphere(new Vec3(0.0f, -100.5f, -1.0f), 100, new lambertian(new Vec3(0.8f, 0.8f, 0.0f)));
 		list[2] = new sphere(new Vec3(1f, 0f, -1f), 0.5f, new metal(new Vec3(0.8f, 0.6f, 0.2f), .0f));
-		list[3] = new sphere(new Vec3(-1f, 0f, -1f), 0.5f, new metal(new Vec3(0.8f, 0.8f, 0.8f), .8f));
+		list[3] = new sphere(new Vec3(-1f, 0f, -1f), 0.5f, new dielectric(1.5f));
+		list[4] = new sphere(new Vec3(-1f, 0f, -1f), -0.45f, new dielectric(1.5f));
+
 		hitable_list world = new hitable_list(list, list.length);
-		camera cam = new camera();
+		
+		// Camera setup
+		float R = (float) Math.cos(Math.PI/4f);
+		camera cam = new camera(90f, (float)(nx)/(float)(ny));
 		
 		sb.append("P3\n" + nx + " " + ny + "\n255\n");
 
@@ -52,7 +57,7 @@ public class main {
 		}
 		
        try {  
-            Writer w = new FileWriter("Metal.ppm");  
+            Writer w = new FileWriter("PositionableCam.ppm");  
             w.append(sb);  
             w.close();  
             long totalTime = System.nanoTime() - startTime;
@@ -81,7 +86,7 @@ public class main {
 		if(rec.valid) {
 			ray scattered = rec.mat.scatter(r,  rec);
 			if(depth < 50 && scattered.valid) {
-				return rec.mat.albedo.mul(color(scattered, world, depth+1));
+				return rec.mat.attenuation.mul(color(scattered, world, depth+1));
 			} else {
 				return Vec3.zero();
 			}
