@@ -66,6 +66,11 @@ public class Vec3 {
     	return new Vec3(x *= k, y *= k, z *= k);
     }
     
+    public static Vec3 unit_vector(Vec3 vec) {
+    	float len = vec.length();
+    	return new Vec3((float)(vec.x() / len),(float)(vec.y() / len), (float)(vec.z() / len));
+    }
+    
     public Vec3 Abs()
     {
         return new Vec3(Math.abs(x), Math.abs(y), Math.abs(z));
