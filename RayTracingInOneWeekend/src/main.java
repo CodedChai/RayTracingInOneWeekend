@@ -4,6 +4,9 @@ import java.util.Random;
 public class main {
 
 	public static void main(String[] args) {
+		System.out.println("Starting render, please wait...");
+		long startTime = System.nanoTime();
+		
 		StringBuilder sb = new StringBuilder();
 		int nx = 1920;
 		int ny = 1080;
@@ -33,6 +36,9 @@ public class main {
 				// col /= ns
 				col = col.div(ns);
 				
+				// A basic gamma2 correction approximation. Just SQRT because they're 50% reflectors
+				col = new Vec3((float)Math.sqrt(col.r()), (float)Math.sqrt(col.g()), (float)Math.sqrt(col.b()));
+				
 				int ir = (int)(255.99 * col.r());
 				int ig = (int)(255.99 * col.g());
 				int ib = (int)(255.99 * col.b());
@@ -41,23 +47,39 @@ public class main {
 		}
 		
        try {  
-            Writer w = new FileWriter("Antialiasing.ppm");  
+            Writer w = new FileWriter("Diffuse.ppm");  
             w.append(sb);  
             w.close();  
-            System.out.println("Done");  
+            long totalTime = System.nanoTime() - startTime;
+            double seconds = (double)totalTime / 1000000000.0;
+            System.out.println("Completed render in: " + seconds + " seconds.");  
         } catch (IOException e) {  
             e.printStackTrace();  
         }  
 	}
 	
+	private static Vec3 random_in_unit_sphere() {
+		Vec3 p;
+		Random rand = new Random();
+
+		do {
+			Vec3 randVec = new Vec3(rand.nextFloat(), rand.nextFloat(), rand.nextFloat());
+			Vec3 unitVec = new Vec3(1.0f, 1.0f, 1.0f);
+			p = randVec.mul(2.0f).sub(unitVec);
+		} while (p.squared_length() >= 1.0f);
+		
+		return p;
+	}
 	
 	private static Vec3 color(ray r, hitable_list world) {
 		hit_record rec = new hit_record();
-		rec = world.hit(r,  0.0f, Float.MAX_VALUE, rec);
+		rec = world.hit(r,  0.001f, Float.MAX_VALUE, rec);
 		if(rec.valid) {
+			Vec3 target = rec.p.add(rec.normal).add(random_in_unit_sphere());
+			
 			// Change the -1 to 1 coordinates to 0 to 1
 			// 0.5f * new Vec3(N.x() + 1f, N.y() + 1f, N.z() + 1f)
-			return rec.normal.add(1f).mul(.5f);
+			return color(new ray(rec.p, target.sub(rec.p)), world).mul(0.5f);
 		} else {
 			Vec3 unit_direction = r.direction().normalize();
 			float t = (float) (0.5f * (unit_direction.y() + 1.0));
