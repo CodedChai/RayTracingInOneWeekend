@@ -8,6 +8,7 @@ public class camera {
 	public Vec3 origin;
 	public float lens_radius;
 	public Vec3 u, v, w;
+	public float time0, time1;
 	
 	Vec3 random_in_unit_disk() {
 		Vec3 p;
@@ -18,7 +19,7 @@ public class camera {
 	}
 
 	// vfov is the vertical FoV, top to bottom in degrees
-	camera(Vec3 lookfrom, Vec3 lookat, Vec3 vup, float vfov, float aspect, float aperture, float focus_dist){
+	camera(Vec3 lookfrom, Vec3 lookat, Vec3 vup, float vfov, float aspect, float aperture, float focus_dist, float t0, float t1){
 		lens_radius = aperture / 2f;
 		origin = lookfrom;
 		w = lookfrom.sub(lookat).normalize();
@@ -30,14 +31,17 @@ public class camera {
 		lower_left_corner = origin.sub(u.mul(half_width * focus_dist)).sub(v.mul(half_height * focus_dist)).sub(w.mul(focus_dist));
 		horizontal = u.mul(2f * half_width * focus_dist);
 		vertical = v.mul(2f * half_height * focus_dist);
+		time0 = t0;
+		time1 = t1;
 	}
 
 	public ray get_ray(float s, float t) {
 		// lower left corner + u * horizontal _ v * vertical
 		Vec3 rd = random_in_unit_disk().mul(lens_radius);
 		Vec3 offset = u.mul(rd.x()).add(v.mul(rd.y()));
+		float time = time0 + rand.nextFloat() * (time1-time0);
 		
-		return new ray(origin.add(offset), lower_left_corner.add(horizontal.mul(s)).add(vertical.mul(t)).sub(origin).sub(offset));
+		return new ray(origin.add(offset), lower_left_corner.add(horizontal.mul(s)).add(vertical.mul(t)).sub(origin).sub(offset), time);
 	}
 	
 }

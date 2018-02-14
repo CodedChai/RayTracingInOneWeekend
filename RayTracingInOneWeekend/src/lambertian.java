@@ -10,7 +10,7 @@ public class lambertian extends material {
 	ray scatter(ray r_in, hit_record rec) {
 		Vec3 target = rec.p.add(rec.normal).add(main.random_in_unit_sphere());
 		attenuation = albedo;
-		return new ray(rec.p, target.sub(rec.p));
+		return new ray(rec.p, target.sub(rec.p), r_in.time());
 	}
 
 }

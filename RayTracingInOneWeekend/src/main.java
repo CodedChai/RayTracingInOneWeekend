@@ -12,7 +12,7 @@ public class main {
 		StringBuilder sb = new StringBuilder();
 		int nx = 2000;
 		int ny = 1000;
-		int accuracy = 100;
+		int samples = 30;
 		
 		// Create all hitable spheres
 		Random rand = new Random();
@@ -33,14 +33,19 @@ public class main {
 		float dist_to_focus = 10f;
 		float aperture = 0.1f;
 		
-		camera cam = new camera(lookfrom, lookat, vup, 20f, (float)(nx)/(float)(ny), aperture, dist_to_focus);
+		camera cam = new camera(lookfrom, lookat, vup, 20f, (float)(nx)/(float)(ny), aperture, dist_to_focus, 0f, .5f);
 		
 		sb.append("P3\n" + nx + " " + ny + "\n255\n");
-
+	
 		for(int j = ny-1; j >=0; j--) {
+			// Show percent done
+			if(j % ((int)(j/100)) == 0) {
+				System.out.println(j/100f + "% done.");
+			}
+			
 			for(int i = 0; i < nx; i++) {
 				Vec3 col = Vec3.zero();
-				for(int s = 0; s < accuracy; s++) {
+				for(int s = 0; s < samples; s++) {
 					float u = (float)(i + rand.nextFloat())/(float)(nx);
 					float v = (float)(j + rand.nextFloat())/(float)(ny);
 					
@@ -50,7 +55,7 @@ public class main {
 					col = col.add(color(r, world, 0));
 				}
 				// col /= ns
-				col = col.div(accuracy);
+				col = col.div(samples);
 				
 				// A basic gamma2 correction approximation. Just SQRT because they're 50% reflectors
 				col = new Vec3((float)Math.sqrt(col.r()), (float)Math.sqrt(col.g()), (float)Math.sqrt(col.b()));
@@ -63,7 +68,7 @@ public class main {
 		}
 		
 		try {  
-            Writer w = new FileWriter("Random.ppm");  
+            Writer w = new FileWriter("MotionBlur.ppm");  
             w.append(sb);  
             w.close();  
             long totalTime = System.nanoTime() - startTime;
@@ -119,7 +124,11 @@ public class main {
 				float choose_mat = rand.nextFloat();
 				Vec3 center = new Vec3(a + 0.9f * rand.nextFloat(), .2f, b + 0.9f * rand.nextFloat());
 				if((center.sub(new Vec3(4f, .2f, 0f)).length() > 0.9f)){
-					if(choose_mat < 0.5f) {	// Diffuse
+					if(choose_mat < 0.2f) {	// Motion Blur Diffuse
+						list[i++] = new moving_sphere(center, center.add(new Vec3(0f, rand.nextFloat() * 0.5f, .2f)), 0f, .5f, center.y(), 
+								new lambertian(new Vec3(rand.nextFloat() * rand.nextFloat(), rand.nextFloat() * rand.nextFloat(), rand.nextFloat() * rand.nextFloat())));
+					}
+					else if(choose_mat < 0.5f) {	// Diffuse
 						list[i++] = new sphere(center, center.y(), new lambertian(new Vec3(rand.nextFloat() * rand.nextFloat(), rand.nextFloat() * rand.nextFloat(), rand.nextFloat() * rand.nextFloat())));
 					} else if(choose_mat < .92f) {	// Metal
 						list[i++] = new sphere(center, center.y(), new metal(
