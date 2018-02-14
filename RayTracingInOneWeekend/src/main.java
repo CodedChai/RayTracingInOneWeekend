@@ -24,7 +24,7 @@ public class main {
 		list[4] = new sphere(new Vec3(-1f, 0f, -1f), -0.45f, new dielectric(1.5f));
 
 		hitable_list world = new hitable_list(list, list.length);
-		world = random_scene();
+		//world = random_scene();
 		
 		// Camera setup
 		Vec3 lookfrom = new Vec3(13f, 2f, 3f);
@@ -39,8 +39,8 @@ public class main {
 	
 		for(int j = ny-1; j >=0; j--) {
 			// Show percent done
-			if(j % ((int)(j/100)) == 0) {
-				System.out.println(j/100f + "% done.");
+			if((ny-1-j) % ((int)((ny-1)/100)) == 0) {
+				System.out.println((ny-1-j) / ((int)((ny)/100)) + "% done." );
 			}
 			
 			for(int i = 0; i < nx; i++) {
@@ -68,7 +68,7 @@ public class main {
 		}
 		
 		try {  
-            Writer w = new FileWriter("MotionBlur.ppm");  
+            Writer w = new FileWriter("Throwaway.ppm");  
             w.append(sb);  
             w.close();  
             long totalTime = System.nanoTime() - startTime;
