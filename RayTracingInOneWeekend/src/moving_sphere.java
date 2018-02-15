@@ -54,9 +54,24 @@ public class moving_sphere extends hitable{
 	}
 
 	public AABB surrounding_box(AABB box0, AABB box1){
-		return new AABB();
+		Vec3 small = new Vec3(ffmin(box0._min.x(), box1._min.x()),
+				ffmin(box0._min.y(), box1._min.y()),
+				ffmin(box0._min.z(), box1._min.z()));
+
+		Vec3 big = new Vec3(ffmin(box0._max.x(), box1._max.x()),
+				ffmin(box0._max.y(), box1._max.y()),
+				ffmin(box0._max.z(), box1._max.z()));
+
+		return new AABB(small, big);
 	}
 
+	private float ffmin(float a, float b){
+		return a < b ? a : b;
+	}
+
+	private float ffmax(float a, float b){
+		return a > b ? a : b;
+	}
 
 	private Vec3 center(float time) {
 		return center0.add(center1.sub(center0).mul((time - time0) / (time1 - time0)));
