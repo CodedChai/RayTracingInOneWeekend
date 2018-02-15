@@ -10,9 +10,9 @@ public class main {
 		long startTime = System.nanoTime();
 		
 		StringBuilder sb = new StringBuilder();
-		int nx = 2000;
-		int ny = 1000;
-		int samples = 30;
+		int nx = 500;
+		int ny = 400;
+		int samples = 20;
 		
 		// Create all hitable spheres
 		Random rand = new Random();
@@ -68,7 +68,7 @@ public class main {
 		}
 		
 		try {  
-            Writer w = new FileWriter("Throwaway.ppm");  
+            Writer w = new FileWriter("LaptopTest.ppm");
             w.append(sb);  
             w.close();  
             long totalTime = System.nanoTime() - startTime;

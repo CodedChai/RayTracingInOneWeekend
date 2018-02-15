@@ -45,7 +45,19 @@ public class moving_sphere extends hitable{
 		rec.valid = false;
 		return rec;
 	}
-	
+
+	@Override
+	public AABB bounding_box(float t0, float t1){
+		return new AABB(center(t1-t0).sub(new Vec3(radius, radius, radius)),
+				center(t1 - t0).add(new Vec3(radius, radius, radius)));
+
+	}
+
+	public AABB surrounding_box(AABB box0, AABB box1){
+		return new AABB();
+	}
+
+
 	private Vec3 center(float time) {
 		return center0.add(center1.sub(center0).mul((time - time0) / (time1 - time0)));
 	}
