@@ -4,7 +4,19 @@
 
 using namespace std;
 
+bool hitSphere(const vec& center, float radius, const ray& r) {
+	vec oc = r.origin() - center;
+	float a = dot(r.direction(), r.direction());
+	float b = 2.0 * dot(oc, r.direction());
+	float c = dot(oc, oc) - radius * radius;
+	float discriminant = b * b - 4 * a * c;
+	return (discriminant > 0);
+}
+
 vec color(const ray& r) {
+	if (hitSphere(vec(0, 0, -1), 0.5, r))
+		return vec(1, 0, 0);
+
 	vec unitDirection = unitVector(r.direction());
 	float t = 0.5 * (unitDirection.y() + 1.0);
 	return (1.0 - t) * vec(1.0, 1.0, 1.0) + t * vec(0.5, 0.7, 1.0);
