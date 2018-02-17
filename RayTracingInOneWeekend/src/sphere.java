@@ -41,7 +41,7 @@ public class sphere extends hitable{
 	}
 
 	@Override
-	public AABB bounding_box(float t0, float t1){
+	public AABB bounding_box(float t0, float t1, AABB box){
 		return new AABB(center.sub(new Vec3(radius, radius, radius)),
 				center.add(new Vec3(radius, radius, radius)));
 	}

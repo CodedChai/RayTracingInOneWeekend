@@ -68,7 +68,7 @@ public class main {
 		}
 		
 		try {  
-            Writer w = new FileWriter("LaptopTest.ppm");
+            Writer w = new FileWriter("BVHTest.ppm");
             w.append(sb);  
             w.close();  
             long totalTime = System.nanoTime() - startTime;

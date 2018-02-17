@@ -47,7 +47,7 @@ public class moving_sphere extends hitable{
 	}
 
 	@Override
-	public AABB bounding_box(float t0, float t1){
+	public AABB bounding_box(float t0, float t1, AABB box){
 		return new AABB(center(t1-t0).sub(new Vec3(radius, radius, radius)),
 				center(t1 - t0).add(new Vec3(radius, radius, radius)));
 
@@ -58,9 +58,9 @@ public class moving_sphere extends hitable{
 				ffmin(box0._min.y(), box1._min.y()),
 				ffmin(box0._min.z(), box1._min.z()));
 
-		Vec3 big = new Vec3(ffmin(box0._max.x(), box1._max.x()),
-				ffmin(box0._max.y(), box1._max.y()),
-				ffmin(box0._max.z(), box1._max.z()));
+		Vec3 big = new Vec3(ffmax(box0._max.x(), box1._max.x()),
+				ffmax(box0._max.y(), box1._max.y()),
+				ffmax(box0._max.z(), box1._max.z()));
 
 		return new AABB(small, big);
 	}

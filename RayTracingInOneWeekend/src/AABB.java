@@ -7,6 +7,11 @@ public class AABB {
         _min = a;
         _max = b;
     }
+    
+    AABB(){
+    	_min = new Vec3(Float.MIN_VALUE, Float.MIN_VALUE, Float.MIN_VALUE);
+    	_max = new Vec3(Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE);
+    }
 
     public boolean hit(ray r, float tmin, float tmax){
         float t0 = ffmin((_min.x() - r.origin().x()) / r.direction().x(),
