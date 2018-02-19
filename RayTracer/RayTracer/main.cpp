@@ -2,7 +2,8 @@
 #include <fstream>
 #include "hitable_list.h"
 #include "sphere.h"
-#include "float.h"
+#include "camera.h"
+#include <time.h>
 
 using namespace std;
 
@@ -19,29 +20,30 @@ vec color(const ray& r, hitable *world) {
 }
 
 int main() {
+	srand((unsigned)time(NULL));
 	ofstream imgOut;
-	imgOut.open("Normal.ppm");
-	int width = 400;
-	int height = 300;
-
-	vec lowerLeftCorner(-2.0, -1.0, -1.0);
-	vec horizontal(4.0, 0.0, 0.0);
-	vec vertical(0.0, 2.0, 0.0);
-	vec origin(0.0, 0.0, 0.0);
+	imgOut.open("AntiAliasing.ppm");
+	int height = 400;
+	int width = height * 2;
+	int samples = 100;	// samples per pixel
 	hitable *list[2];
 	list[0] = new sphere(vec(0, 0, -1), 0.5);
 	list[1] = new sphere(vec(0, -100.5, -1), 100);
 	hitable *world = new hitable_list(list, 2);
+	camera cam;
 	imgOut << "P3\n" << width << " " << height << "\n255\n";
 	for (int j = height - 1; j >= 0; j--) {
 		for (int i = 0; i < width; i++) {
-			float u = float(i) / float(width);
-			float v = float(j) / float(height);
-
-			ray r(origin, lowerLeftCorner + u * horizontal + v * vertical);
-
-			vec p = r.pointAtParameter(2.0);
-			vec col = color(r, world);
+			vec col = vec(0.0, 0.0, 0.0);
+			for (int s = 0; s < samples; s++) {
+				float u = float(i + (float)rand() / RAND_MAX) / float(width);
+				float v = float(j + (float)rand() / RAND_MAX) / float(height);
+				ray r = cam.getRay(u, v);
+				vec p = r.pointAtParameter(2.0);
+				col += color(r, world);
+			}
+			
+			col /= float(samples);
 			int ir = int(255.99 * col[0]);
 			int ig = int(255.99 * col[1]);
 			int ib = int(255.99 * col[2]);
