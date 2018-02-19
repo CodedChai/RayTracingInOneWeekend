@@ -29,9 +29,9 @@ vec color(const ray& r, hitable *world, int depth) {
 int main() {
 	srand((unsigned)time(NULL));
 	ofstream imgOut;
-	imgOut.open("Dielectric.ppm");
-	int height = 800;
-	int width = height * 2;
+	imgOut.open("PositionableCam.ppm");
+	int width = 1920;
+	int height = 1080;
 	int samples = 100;	// samples per pixel
 
 	hitable *list[5];
@@ -43,7 +43,7 @@ int main() {
 	list[4] = new sphere(vec(-1, 0, -1), -0.45, new dielectric(1.5));
 	hitable *world = new hitable_list(list, 5);
 
-	camera cam;
+	camera cam(vec(-1,1,1), vec(0,0,-1), vec(0,1,0), 90, float(width)/float(height));
 	imgOut << "P3\n" << width << " " << height << "\n255\n";
 	for (int j = height - 1; j >= 0; j--) {
 		for (int i = 0; i < width; i++) {
