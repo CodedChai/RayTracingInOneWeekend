@@ -29,18 +29,19 @@ vec color(const ray& r, hitable *world, int depth) {
 int main() {
 	srand((unsigned)time(NULL));
 	ofstream imgOut;
-	imgOut.open("Metal.ppm");
+	imgOut.open("Dielectric.ppm");
 	int height = 800;
 	int width = height * 2;
 	int samples = 100;	// samples per pixel
 
-	hitable *list[4];
+	hitable *list[5];
 	// Origin, radius, material(color)
 	list[0] = new sphere(vec(0, 0, -1), 0.5, new lambertian(vec(0.8, 0.3, 0.3)));
 	list[1] = new sphere(vec(0, -100.5, -1), 100, new lambertian(vec(0.8, 0.8, 0.0)));
 	list[2] = new sphere(vec(1, 0, -1), 0.5, new metal(vec(0.8, 0.6, 0.2), 0.3));
-	list[3] = new sphere(vec(-1, 0, -1), 0.5, new metal(vec(0.8, 0.8, 0.8), 0.0));
-	hitable *world = new hitable_list(list, 4);
+	list[3] = new sphere(vec(-1, 0, -1), 0.5, new dielectric(1.5));
+	list[4] = new sphere(vec(-1, 0, -1), -0.45, new dielectric(1.5));
+	hitable *world = new hitable_list(list, 5);
 
 	camera cam;
 	imgOut << "P3\n" << width << " " << height << "\n255\n";
