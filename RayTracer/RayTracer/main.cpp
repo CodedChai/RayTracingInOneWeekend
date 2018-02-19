@@ -26,10 +26,41 @@ vec color(const ray& r, hitable *world, int depth) {
 	}
 }
 
+hitable *randomScene() {
+	int n = 500;
+	hitable **list = new hitable*[n + 1];
+	list[0] = new sphere(vec(0, -1000, 0), 1000, new lambertian(vec(0.5, 0.5, 0.5)));
+	int i = 1;
+	for (int a = -11; a < 11; a++) {
+		for (int b = -11; b < 11; b++) {
+			float choose_mat = (float)rand() / RAND_MAX;
+			vec center(a + 0.9*(float)rand() / RAND_MAX, 0.2, b + 0.9*(float)rand() / RAND_MAX);
+			if ((center - vec(4, 0.2, 0)).length() > 0.9) {
+				if (choose_mat < 0.5) {  // diffuse
+					list[i++] = new sphere(center, 0.2, new lambertian(vec((float)rand() / RAND_MAX*(float)rand() / RAND_MAX, (float)rand() / RAND_MAX*(float)rand() / RAND_MAX, (float)rand() / RAND_MAX*(float)rand() / RAND_MAX)));
+				}
+				else if (choose_mat < 0.8) { // metal
+					list[i++] = new sphere(center, 0.2,
+						new metal(vec(0.5*(1 + (float)rand() / RAND_MAX), 0.5*(1 + (float)rand() / RAND_MAX), 0.5*(1 + (float)rand() / RAND_MAX)), 0.5*(float)rand() / RAND_MAX));
+				}
+				else {  // glass
+					list[i++] = new sphere(center, 0.2, new dielectric(1.5));
+				}
+			}
+		}
+	}
+
+	list[i++] = new sphere(vec(0, 1, 0), 1.0, new dielectric(1.5));
+	list[i++] = new sphere(vec(-4, 1, 0), 1.0, new lambertian(vec(0.4, 0.2, 0.1)));
+	list[i++] = new sphere(vec(4, 1, 0), 1.0, new metal(vec(0.7, 0.6, 0.5), 0.0));
+
+	return new hitable_list(list, i);
+}
+
 int main() {
 	srand((unsigned)time(NULL));
 	ofstream imgOut;
-	imgOut.open("Depth of Field.ppm");
+	imgOut.open("RandomScene.ppm");
 	int width = 1920;
 	int height = 1080;
 	int samples = 100;	// samples per pixel
@@ -43,12 +74,14 @@ int main() {
 	list[4] = new sphere(vec(-1, 0, -1), -0.45, new dielectric(1.5));
 	hitable *world = new hitable_list(list, 5);
 
+	world = randomScene();
+
 	vec UP(0, 1, 0);
-	vec lookFrom(-1, 1, 1);
-	vec lookAt(0, 0, -1);
-	float dist_to_focus = (lookFrom - lookAt).length();
-	float aperture = 1.0;
-	float vFoV = 90;
+	vec lookFrom(-13, 2, 3);
+	vec lookAt(0, 0, 0);
+	float dist_to_focus = 10;
+	float aperture = 0.1;
+	float vFoV = 20;
 	float aspect = float(width) / float(height);
 
 	camera cam(lookFrom, lookAt, UP, vFoV, aspect, aperture, dist_to_focus);
