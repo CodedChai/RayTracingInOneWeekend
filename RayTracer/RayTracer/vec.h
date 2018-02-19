@@ -29,7 +29,7 @@ public:
 		return sqrt(e[0] * e[0] + e[1] * e[1] + e[2] * e[2]);
 	}
 	inline float squaredLength() {
-		return e[0] * e[0] + e[1] * e[1] + e[2] * e[2];
+		return (e[0] * e[0] + e[1] * e[1] + e[2] * e[2]);
 	}
 	inline void makeUnitVector();
 
@@ -74,13 +74,12 @@ inline vec operator*(const vec &v, float t) {
 	return vec(t * v.e[0], t * v.e[1], t * v.e[2]);
 }
 
-
 inline vec operator/(vec v, float t) {
 	return vec(v.e[0] / t, v.e[1] / t, v.e[2] / t);
 }
 
 inline float dot(const vec &v1, const vec &v2) {
-	return v1.e[0] * v2.e[0] + v1.e[1] * v2.e[1] + v1.e[2] * v2.e[2];
+	return (v1.e[0] * v2.e[0] + v1.e[1] * v2.e[1] + v1.e[2] * v2.e[2]);
 }
 
 inline vec cross(const vec &v1, const vec &v2) {
@@ -114,6 +113,21 @@ inline vec& vec::operator/=(const vec &v) {
 	e[0] /= v.e[0];
 	e[1] /= v.e[1];
 	e[2] /= v.e[2];
+	return *this;
+}
+
+inline vec& vec::operator*=(const float t) {
+	e[0] *= t;
+	e[1] *= t;
+	e[2] *= t;
+	return *this;
+}
+
+inline vec& vec::operator/=(const float t) {
+	float k = 1.0 / t;
+	e[0] *= k;
+	e[1] *= k;
+	e[2] *= k;
 	return *this;
 }
 

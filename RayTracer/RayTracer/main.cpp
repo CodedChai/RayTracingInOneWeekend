@@ -1,52 +1,37 @@
 #include <iostream>
 #include <fstream>
-#include "ray.h"
+#include "hitable_list.h"
+#include "sphere.h"
+#include "float.h"
 
 using namespace std;
 
-bool hitSphere(const vec& center, float radius, const ray& r) {
-	vec oc = r.origin() - center;
-	float a = dot(r.direction(), r.direction());
-	float b = 2.0 * dot(oc, r.direction());
-	float c = dot(oc, oc) - radius * radius;
-	float discriminant = b * b - 4 * a * c; 
-	//return (discriminant > 0);
-	//cout << a << b << c << endl;
-	if (discriminant < 0) {
-		return -1.0;
+vec color(const ray& r, hitable *world) {
+	hit_record rec;
+	if (world->hit(r, 0.0, FLT_MAX, rec)) {
+		return 0.5 * vec(rec.normal.x() + 1, rec.normal.y() + 1, rec.normal.z() + 1);
 	}
 	else {
-		return (-b - sqrt(discriminant) ) / (2.0 * a);
+		vec unit_direction = unitVector(r.direction());
+		float t = 0.5 * (unit_direction.y() + 1.0);
+		return (1.0 - t) * vec(1.0, 1.0, 1.0) + t * vec(0.5, 0.7, 1.0);
 	}
-}
-
-vec color(const ray& r) {
-	float t = hitSphere(vec(0, 0, -1), 0.5, r);
-	if (t) {
-		//return vec(1, 0, 0);
-	}
-	if (t > 0.0) {
-		vec normal = unitVector(r.pointAtParameter(t) - vec(0, 0, -1));
-		return 0.5 * vec(normal.x() + 1, normal.y() + 1, normal.z() + 1);
-	}
-	//cout << " t < 0 " << endl;
-
-	vec unitDirection = unitVector(r.direction());
-	t = 0.5 * (unitDirection.y() + 1.0);
-	return ((1.0 - t) * vec(1.0, 1.0, 1.0) + t * vec(0.5, 0.7, 1.0));
 }
 
 int main() {
 	ofstream imgOut;
 	imgOut.open("Normal.ppm");
-	int width = 200;
-	int height = 100;
+	int width = 400;
+	int height = 300;
 
 	vec lowerLeftCorner(-2.0, -1.0, -1.0);
 	vec horizontal(4.0, 0.0, 0.0);
 	vec vertical(0.0, 2.0, 0.0);
 	vec origin(0.0, 0.0, 0.0);
-
+	hitable *list[2];
+	list[0] = new sphere(vec(0, 0, -1), 0.5);
+	list[1] = new sphere(vec(0, -100.5, -1), 100);
+	hitable *world = new hitable_list(list, 2);
 	imgOut << "P3\n" << width << " " << height << "\n255\n";
 	for (int j = height - 1; j >= 0; j--) {
 		for (int i = 0; i < width; i++) {
@@ -55,7 +40,8 @@ int main() {
 
 			ray r(origin, lowerLeftCorner + u * horizontal + v * vertical);
 
-			vec col = color(r);
+			vec p = r.pointAtParameter(2.0);
+			vec col = color(r, world);
 			int ir = int(255.99 * col[0]);
 			int ig = int(255.99 * col[1]);
 			int ib = int(255.99 * col[2]);

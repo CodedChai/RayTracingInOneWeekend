@@ -4,13 +4,13 @@
 
 class ray {
 public:
-	vec o;
-	vec d;
 	ray() { }
-	ray(const vec& or, const vec& dir) { o = or; d = dir; }
+	ray(const vec& _o, const vec& _d) { o = _o; d = _d; }
 	vec origin() const { return o; }
 	vec direction() const { return d; }
 	vec pointAtParameter(float t) const { return o + t * d; }
+	vec o;
+	vec d;
 };
 
 #endif
