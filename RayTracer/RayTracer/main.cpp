@@ -4,23 +4,20 @@
 #include "sphere.h"
 #include "camera.h"
 #include <time.h>
-
+#include "material.h"
 using namespace std;
 
-vec random_in_unit_sphere() {
-	vec p;
-	do {
-		p = 2.0 * vec((float)rand() / RAND_MAX, (float)rand() / RAND_MAX, (float)rand() / RAND_MAX) - vec(1, 1, 1);
-	} while (p.squaredLength() >= 1.0);
-	return p;
-}
-
-
-vec color(const ray& r, hitable *world) {
+vec color(const ray& r, hitable *world, int depth) {
 	hit_record rec;
 	if (world->hit(r, 0.0001, FLT_MAX, rec)) {
-		vec target = rec.p + rec.normal + random_in_unit_sphere();
-		return 0.5 * color(ray(rec.p, target - rec.p), world);
+		ray scattered;
+		vec attenuation;
+		if (depth < 50 && rec.mat_ptr->scatter(r, rec, attenuation, scattered)) {
+			return attenuation * color(scattered, world, depth + 1);
+		}
+		else {
+			return vec(0, 0, 0);
+		}
 	}
 	else {
 		vec unit_direction = unitVector(r.direction());
@@ -32,14 +29,19 @@ vec color(const ray& r, hitable *world) {
 int main() {
 	srand((unsigned)time(NULL));
 	ofstream imgOut;
-	imgOut.open("Diffuse.ppm");
+	imgOut.open("Metal.ppm");
 	int height = 800;
 	int width = height * 2;
 	int samples = 100;	// samples per pixel
-	hitable *list[2];
-	list[0] = new sphere(vec(0, 0, -1), 0.5);
-	list[1] = new sphere(vec(0, -100.5, -1), 100);
-	hitable *world = new hitable_list(list, 2);
+
+	hitable *list[4];
+	// Origin, radius, material(color)
+	list[0] = new sphere(vec(0, 0, -1), 0.5, new lambertian(vec(0.8, 0.3, 0.3)));
+	list[1] = new sphere(vec(0, -100.5, -1), 100, new lambertian(vec(0.8, 0.8, 0.0)));
+	list[2] = new sphere(vec(1, 0, -1), 0.5, new metal(vec(0.8, 0.6, 0.2), 0.3));
+	list[3] = new sphere(vec(-1, 0, -1), 0.5, new metal(vec(0.8, 0.8, 0.8), 0.0));
+	hitable *world = new hitable_list(list, 4);
+
 	camera cam;
 	imgOut << "P3\n" << width << " " << height << "\n255\n";
 	for (int j = height - 1; j >= 0; j--) {
@@ -50,7 +52,7 @@ int main() {
 				float v = float(j + (float)rand() / RAND_MAX) / float(height);
 				ray r = cam.getRay(u, v);
 				vec p = r.pointAtParameter(2.0);
-				col += color(r, world);
+				col += color(r, world, 0);
 			}
 			
 			col /= float(samples);

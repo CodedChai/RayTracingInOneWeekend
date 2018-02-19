@@ -25,3 +25,4 @@ RayTracer/.vs/RayTracer/v15/ipch/AutoPCH/41f57506798870d6/VEC.ipch
 *.json
 *.sqlite
 *.vcxproj
+RayTracer/x64/Release/RayTracer.ipdb
