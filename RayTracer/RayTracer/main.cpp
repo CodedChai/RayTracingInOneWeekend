@@ -5,6 +5,8 @@
 #include "camera.h"
 #include <time.h>
 #include "material.h"
+#include <omp.h>
+
 using namespace std;
 
 vec color(const ray& r, hitable *world, int depth) {
@@ -31,6 +33,7 @@ hitable *randomScene() {
 	hitable **list = new hitable*[n + 1];
 	list[0] = new sphere(vec(0, -1000, 0), 1000, new lambertian(vec(0.5, 0.5, 0.5)));
 	int i = 1;
+#pragma omp parallel for
 	for (int a = -11; a < 11; a++) {
 		for (int b = -11; b < 11; b++) {
 			float choose_mat = (float)rand() / RAND_MAX;
@@ -58,9 +61,10 @@ hitable *randomScene() {
 }
 
 int main() {
-	srand((unsigned)time(NULL));
+	
+srand((unsigned)time(NULL));
 	ofstream imgOut;
-	imgOut.open("RandomScene.ppm");
+	imgOut.open("OpenMP Setup.ppm");
 	int width = 1920;
 	int height = 1080;
 	int samples = 100;	// samples per pixel
@@ -83,29 +87,46 @@ int main() {
 	float aperture = 0.1;
 	float vFoV = 20;
 	float aspect = float(width) / float(height);
+	int pixels = width * height;
+	vec* outCols = new vec[pixels]();
 
 	camera cam(lookFrom, lookAt, UP, vFoV, aspect, aperture, dist_to_focus);
 	imgOut << "P3\n" << width << " " << height << "\n255\n";
+#pragma omp parallel for
 	for (int j = height - 1; j >= 0; j--) {
 		for (int i = 0; i < width; i++) {
-			vec col = vec(0.0, 0.0, 0.0);
+			vec col(0.0, 0.0, 0.0);
 			for (int s = 0; s < samples; s++) {
 				float u = float(i + (float)rand() / RAND_MAX) / float(width);
 				float v = float(j + (float)rand() / RAND_MAX) / float(height);
 				ray r = cam.getRay(u, v);
 				vec p = r.pointAtParameter(2.0);
-				col += color(r, world, 0);
+				col += color(r, world, 0);			
 			}
-			
+
 			col /= float(samples);
 			// Gamma2 color correction
 			col = vec(sqrt(col[0]), sqrt(col[1]), sqrt(col[2]));
-			int ir = int(255.99 * col[0]);
-			int ig = int(255.99 * col[1]);
-			int ib = int(255.99 * col[2]);
-			imgOut << ir << " " << ig << " " << ib << "\n";
+			float ir = int(255.99 * col[0]);
+			float ig = int(255.99 * col[1]);
+			float ib = int(255.99 * col[2]);
+
+			//imgOut << ir << " " << ig << " " << ib << "\n";
+
+			outCols[i * height + j] = vec(ir, ig, ib);
+
+			
 		}
 	}
+
+	for (int j = height - 1; j >= 0; j--) {
+		for (int i = 0; i < width; i++) {
+			imgOut << outCols[i * height + j].r() << " " << outCols[i * height + j].g() << " " << outCols[i * height + j].b() << "\n";
+
+		}
+	}
+
+
 	imgOut.close();
 	return 0;
 }
