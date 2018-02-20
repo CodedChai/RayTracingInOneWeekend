@@ -43,7 +43,7 @@ public:
 	lambertian(const vec& a) : albedo(a) {}
 	virtual bool scatter(const ray& r_in, const hit_record& rec, vec& attenuation, ray& scattered) const {
 		vec target = rec.p + rec.normal + random_in_unit_sphere();
-		scattered = ray(rec.p, target - rec.p);
+		scattered = ray(rec.p, target - rec.p, r_in.time());
 		attenuation = albedo;
 		return true;
 	}
@@ -56,7 +56,7 @@ public:
 	metal(const vec& a, float f) : albedo(a) { if (f < 1) fuzz = f; else fuzz = 1.0; }
 	virtual bool scatter(const ray& r_in, const hit_record& rec, vec& attenuation, ray& scattered) const {
 		vec reflected = reflect(unitVector(r_in.direction()), rec.normal);
-		scattered = ray(rec.p, reflected + fuzz * random_in_unit_sphere());
+		scattered = ray(rec.p, reflected + fuzz * random_in_unit_sphere(), r_in.time());
 		attenuation = albedo;
 		return (dot(scattered.direction(), rec.normal) > 0);
 	}
@@ -96,10 +96,10 @@ public:
 			reflect_prob = 1.0;
 		}
 		if ((float)rand() / RAND_MAX < reflect_prob) {
-			scattered = ray(rec.p, reflected);
+			scattered = ray(rec.p, reflected, r_in.time());
 		}
 		else {
-			scattered = ray(rec.p, refracted);
+			scattered = ray(rec.p, refracted, r_in.time());
 		}
 		return true;
 	}

@@ -2,12 +2,20 @@
 #include <fstream>
 #include "hitable_list.h"
 #include "sphere.h"
+#include "movingSphere.h"
 #include "camera.h"
 #include <time.h>
 #include "material.h"
 #include <omp.h>
 
 using namespace std;
+
+float startTime = 0.0;
+float endTime = 1.0;
+
+float myRand() {
+	return ((float)rand() / RAND_MAX);
+}
 
 vec color(const ray& r, hitable *world, int depth) {
 	hit_record rec;
@@ -36,15 +44,20 @@ hitable *randomScene() {
 #pragma omp parallel for
 	for (int a = -11; a < 11; a++) {
 		for (int b = -11; b < 11; b++) {
-			float choose_mat = (float)rand() / RAND_MAX;
-			vec center(a + 0.9*(float)rand() / RAND_MAX, 0.2, b + 0.9*(float)rand() / RAND_MAX);
+			float choose_mat = myRand();
+			vec center(a + 0.9*myRand(), 0.2, b + 0.9*myRand());
 			if ((center - vec(4, 0.2, 0)).length() > 0.9) {
-				if (choose_mat < 0.5) {  // diffuse
-					list[i++] = new sphere(center, 0.2, new lambertian(vec((float)rand() / RAND_MAX*(float)rand() / RAND_MAX, (float)rand() / RAND_MAX*(float)rand() / RAND_MAX, (float)rand() / RAND_MAX*(float)rand() / RAND_MAX)));
+				if (choose_mat < 0.1) {	// motion blur diffuse
+					//list[i++] = new movingSphere(center, center + vec(.1, .3, 0.1), 0.0, 1.0, 0.2, 
+					//	new lambertian(vec(myRand(), myRand(), myRand())));
+					list[i++] = new sphere(center, 0.2, new lambertian(vec((myRand())*(myRand()), (myRand())*(myRand()), (myRand())*(myRand()))));
+				}
+				else if (choose_mat < 0.5) {  // diffuse
+					list[i++] = new sphere(center, 0.2, new lambertian(vec(myRand(), myRand(), myRand())));
 				}
 				else if (choose_mat < 0.8) { // metal
 					list[i++] = new sphere(center, 0.2,
-						new metal(vec(0.5*(1 + (float)rand() / RAND_MAX), 0.5*(1 + (float)rand() / RAND_MAX), 0.5*(1 + (float)rand() / RAND_MAX)), 0.5*(float)rand() / RAND_MAX));
+						new metal(vec(0.5*(1 + myRand()), 0.5*(1 + myRand()), 0.5*(1 + myRand())), 0.5*myRand()));
 				}
 				else {  // glass
 					list[i++] = new sphere(center, 0.2, new dielectric(1.5));
@@ -61,44 +74,45 @@ hitable *randomScene() {
 }
 
 int main() {
-	
-srand((unsigned)time(NULL));
+	//cout << time(NULL);
+	srand(time(NULL));
 	ofstream imgOut;
-	imgOut.open("OpenMP Setup.ppm");
-	int width = 1920;
-	int height = 1080;
+	imgOut.open("Motion Blur.ppm");
+	int width = 1280;
+	int height = 720;
 	int samples = 100;	// samples per pixel
 
-	hitable *list[5];
+	
+	hitable *list[4];
 	// Origin, radius, material(color)
-	list[0] = new sphere(vec(0, 0, -1), 0.5, new lambertian(vec(0.8, 0.3, 0.3)));
+	list[0] = new movingSphere(vec(0, 0, -1), vec(0, 0.5, -1), 0.0, 1.0, 0.5, new metal(vec(0.8, 0.3, 0.3), 0.1));
+	//list[0] = new sphere(vec(0, 0, -1), 0.5, new lambertian(vec(0.8, 0.3, 0.3)));
 	list[1] = new sphere(vec(0, -100.5, -1), 100, new lambertian(vec(0.8, 0.8, 0.0)));
-	list[2] = new sphere(vec(1, 0, -1), 0.5, new metal(vec(0.8, 0.6, 0.2), 0.3));
-	list[3] = new sphere(vec(-1, 0, -1), 0.5, new dielectric(1.5));
-	list[4] = new sphere(vec(-1, 0, -1), -0.45, new dielectric(1.5));
-	hitable *world = new hitable_list(list, 5);
+	list[2] = new movingSphere(vec(1, 0, -1), vec(1, 0.5, -1), 0.0, 1.0, 0.5, new metal(vec(0.8, 0.6, 0.2), 0.3));
+	list[3] = new movingSphere(vec(-1, 0, -1), vec(-1, 0.5, -1), 0.0, 1.0, 0.5, new dielectric(1.5));
+	hitable *world = new hitable_list(list, 4); 
 
-	world = randomScene();
+	//hitable *world = randomScene();
 
 	vec UP(0, 1, 0);
-	vec lookFrom(-13, 2, 3);
-	vec lookAt(0, 0, 0);
-	float dist_to_focus = 10;
-	float aperture = 0.1;
-	float vFoV = 20;
+	vec lookFrom(0, .5, -3);
+	vec lookAt(0, 0, -1);
+	float dist_to_focus = 1;
+	float aperture = 0;
+	float vFoV = 90;
 	float aspect = float(width) / float(height);
 	int pixels = width * height;
 	vec* outCols = new vec[pixels]();
 
-	camera cam(lookFrom, lookAt, UP, vFoV, aspect, aperture, dist_to_focus);
+	camera cam(lookFrom, lookAt, UP, vFoV, aspect, aperture, dist_to_focus, 0.0, 1.0);
 	imgOut << "P3\n" << width << " " << height << "\n255\n";
 #pragma omp parallel for
 	for (int j = height - 1; j >= 0; j--) {
 		for (int i = 0; i < width; i++) {
 			vec col(0.0, 0.0, 0.0);
 			for (int s = 0; s < samples; s++) {
-				float u = float(i + (float)rand() / RAND_MAX) / float(width);
-				float v = float(j + (float)rand() / RAND_MAX) / float(height);
+				float u = float(i + myRand()) / float(width);
+				float v = float(j + myRand()) / float(height);
 				ray r = cam.getRay(u, v);
 				vec p = r.pointAtParameter(2.0);
 				col += color(r, world, 0);			
