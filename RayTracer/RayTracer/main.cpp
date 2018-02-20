@@ -7,6 +7,7 @@
 #include <time.h>
 #include "material.h"
 #include <omp.h>
+#include "bvh.h"
 
 using namespace std;
 
@@ -45,19 +46,19 @@ hitable *randomScene() {
 	for (int a = -11; a < 11; a++) {
 		for (int b = -11; b < 11; b++) {
 			float choose_mat = myRand();
-			vec center(a + 0.9*myRand(), 0.2, b + 0.9*myRand());
+			vec center(a + myRand(), 0.2, b + myRand());
 			if ((center - vec(4, 0.2, 0)).length() > 0.9) {
 				if (choose_mat < 0.1) {	// motion blur diffuse
-					//list[i++] = new movingSphere(center, center + vec(.1, .3, 0.1), 0.0, 1.0, 0.2, 
-					//	new lambertian(vec(myRand(), myRand(), myRand())));
-					list[i++] = new sphere(center, 0.2, new lambertian(vec((myRand())*(myRand()), (myRand())*(myRand()), (myRand())*(myRand()))));
+					list[i++] = new movingSphere(center, center + vec(.1, .3, 0.1), 0.0, 1.0, 0.2, 
+						new lambertian(vec(myRand(), myRand(), myRand())));
+					//list[i++] = new sphere(center, 0.2, new lambertian(vec((myRand())*(myRand()), (myRand())*(myRand()), (myRand())*(myRand()))));
 				}
 				else if (choose_mat < 0.5) {  // diffuse
 					list[i++] = new sphere(center, 0.2, new lambertian(vec(myRand(), myRand(), myRand())));
 				}
 				else if (choose_mat < 0.8) { // metal
 					list[i++] = new sphere(center, 0.2,
-						new metal(vec(0.5*(1 + myRand()), 0.5*(1 + myRand()), 0.5*(1 + myRand())), 0.5*myRand()));
+						new metal(vec(0.5*(1 + myRand()), 0.5*(1 + myRand()), 0.5*(1 + myRand())), 0.4*myRand()));
 				}
 				else {  // glass
 					list[i++] = new sphere(center, 0.2, new dielectric(1.5));
@@ -70,36 +71,37 @@ hitable *randomScene() {
 	list[i++] = new sphere(vec(-4, 1, 0), 1.0, new lambertian(vec(0.4, 0.2, 0.1)));
 	list[i++] = new sphere(vec(4, 1, 0), 1.0, new metal(vec(0.7, 0.6, 0.5), 0.0));
 
-	return new hitable_list(list, i);
+	//return new hitable_list(list, i);
+	return new bvh_node(list, i, 0.0, 1.0);
 }
 
 int main() {
 	//cout << time(NULL);
-	srand(time(NULL));
+	srand((unsigned)time(NULL));
 	ofstream imgOut;
-	imgOut.open("Motion Blur.ppm");
-	int width = 1280;
-	int height = 720;
+	imgOut.open("BVH.ppm");
+	int width = 1920;
+	int height = 1080;
 	int samples = 100;	// samples per pixel
 
 	
-	hitable *list[4];
+/*	hitable *list[4];
 	// Origin, radius, material(color)
 	list[0] = new movingSphere(vec(0, 0, -1), vec(0, 0.5, -1), 0.0, 1.0, 0.5, new metal(vec(0.8, 0.3, 0.3), 0.1));
 	//list[0] = new sphere(vec(0, 0, -1), 0.5, new lambertian(vec(0.8, 0.3, 0.3)));
 	list[1] = new sphere(vec(0, -100.5, -1), 100, new lambertian(vec(0.8, 0.8, 0.0)));
 	list[2] = new movingSphere(vec(1, 0, -1), vec(1, 0.5, -1), 0.0, 1.0, 0.5, new metal(vec(0.8, 0.6, 0.2), 0.3));
 	list[3] = new movingSphere(vec(-1, 0, -1), vec(-1, 0.5, -1), 0.0, 1.0, 0.5, new dielectric(1.5));
-	hitable *world = new hitable_list(list, 4); 
+	hitable *world = new hitable_list(list, 4); */
 
-	//hitable *world = randomScene();
+	hitable *world = randomScene();
 
 	vec UP(0, 1, 0);
-	vec lookFrom(0, .5, -3);
-	vec lookAt(0, 0, -1);
-	float dist_to_focus = 1;
-	float aperture = 0;
-	float vFoV = 90;
+	vec lookFrom(9, 3, -8);
+	vec lookAt(1, -.1, -1);
+	float dist_to_focus = 10;
+	float aperture = .5;
+	float vFoV = 30;
 	float aspect = float(width) / float(height);
 	int pixels = width * height;
 	vec* outCols = new vec[pixels]();
