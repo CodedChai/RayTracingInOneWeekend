@@ -37,6 +37,16 @@ vec color(const ray& r, hitable *world, int depth) {
 	}
 }
 
+hitable *twoSpheres() {
+	texture *checker = new checkerTexture(new constantTexture(vec(0.2, 0.3, 0.1)), new constantTexture(vec(1.0, 1.0, 1.0)));
+	int n = 50;
+	hitable **list = new hitable*[n + 1];
+	list[0] = new sphere(vec(0, -10, 0), 10, new lambertian(checker));
+	list[1] = new sphere(vec(0,  10, 0), 10, new metal(new constantTexture(vec(1.0,1.0,1.0)), 0.0));
+
+	return new hitable_list(list, 2);
+}
+
 hitable *randomScene() {
 	int n = 500;
 	hitable **list = new hitable*[n + 1];
@@ -79,7 +89,7 @@ int main() {
 	//cout << time(NULL);
 	srand((unsigned)time(NULL));
 	ofstream imgOut;
-	imgOut.open("ConstantTexture.ppm");
+	imgOut.open("TwoTexturedSpheres.ppm");
 	int width = 1920;
 	int height = 1080;
 	int samples = 100;	// samples per pixel
@@ -89,19 +99,23 @@ int main() {
 	// Origin, radius, material(color)
 	list[0] = new sphere(vec(0, 0, -1), 0.5, new lambertian(new constantTexture(vec(0.8, 0.3, 0.3))));
 	//list[0] = new sphere(vec(0, 0, -1), 0.5, new lambertian(vec(0.8, 0.3, 0.3)));
-	list[1] = new sphere(vec(0, -100.5, -1), 100, new lambertian(new constantTexture(vec(0.8, 0.8, 0.0))));
+
+	texture *checker = new checkerTexture(new constantTexture(vec(0.2, 0.3, 0.1)), new constantTexture(vec(0.9, 0.9, 0.9)));
+
+	list[1] = new sphere(vec(0, -100.5, -1), 100, new lambertian(checker));
 	list[2] = new sphere(vec(1, 0, -1), 0.5, new metal(vec(0.8, 0.6, 0.2), 0.3));
 	list[3] = new sphere(vec(-1, 0, -1), 0.5, new dielectric(1.5));
-	hitable *world = new bvh_node(list, 4, 0.0, 1.0); 
+	//hitable *world = new bvh_node(list, 4, 0.0, 1.0); 
 
+	hitable *world = twoSpheres();
 	//hitable *world = randomScene();
 
 	vec UP(0, 1, 0);
-	vec lookFrom(9, 3, -8);
-	vec lookAt(1, -.1, -1);
+	vec lookFrom(13, 2, 3);
+	vec lookAt(0, 0, 0);
 	float dist_to_focus = 10;
-	float aperture = .5;
-	float vFoV = 30;
+	float aperture = 0.0;
+	float vFoV = 20;
 	float aspect = float(width) / float(height);
 	int pixels = width * height;
 	vec* outCols = new vec[pixels]();

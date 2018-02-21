@@ -57,15 +57,20 @@ public:
 
 class metal : public material {
 public:
-	metal(const vec& a, float f) : albedo(a) { if (f < 1) fuzz = f; else fuzz = 1.0; }
+	metal(const vec& a, float f) {
+		albedo = new constantTexture(a);
+		if (f < 1) fuzz = f; else fuzz = 1.0;
+	}
+
+	metal(texture *a, float f) : albedo(a) { if (f < 1) fuzz = f; else fuzz = 1.0; }
 	virtual bool scatter(const ray& r_in, const hit_record& rec, vec& attenuation, ray& scattered) const {
 		vec reflected = reflect(unitVector(r_in.direction()), rec.normal);
 		scattered = ray(rec.p, reflected + fuzz * random_in_unit_sphere(), r_in.time());
-		attenuation = albedo;
+		attenuation = albedo->value(0, 0, rec.p);
 		return (dot(scattered.direction(), rec.normal) > 0);
 	}
 
-	vec albedo;
+	texture* albedo;
 	float fuzz;
 };
 
