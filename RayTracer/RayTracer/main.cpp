@@ -40,7 +40,7 @@ vec color(const ray& r, hitable *world, int depth) {
 hitable *randomScene() {
 	int n = 500;
 	hitable **list = new hitable*[n + 1];
-	list[0] = new sphere(vec(0, -1000, 0), 1000, new lambertian(vec(0.5, 0.5, 0.5)));
+	list[0] = new sphere(vec(0, -1000, 0), 1000, new lambertian(new constantTexture(vec(0.5, 0.5, 0.5))));
 	int i = 1;
 #pragma omp parallel for
 	for (int a = -11; a < 11; a++) {
@@ -68,7 +68,7 @@ hitable *randomScene() {
 	}
 
 	list[i++] = new sphere(vec(0, 1, 0), 1.0, new dielectric(1.5));
-	list[i++] = new sphere(vec(-4, 1, 0), 1.0, new lambertian(vec(0.4, 0.2, 0.1)));
+	list[i++] = new sphere(vec(-4, 1, 0), 1.0, new lambertian((vec(0.4, 0.2, 0.1))));
 	list[i++] = new sphere(vec(4, 1, 0), 1.0, new metal(vec(0.7, 0.6, 0.5), 0.0));
 
 	//return new hitable_list(list, i);
@@ -79,22 +79,22 @@ int main() {
 	//cout << time(NULL);
 	srand((unsigned)time(NULL));
 	ofstream imgOut;
-	imgOut.open("BVH.ppm");
+	imgOut.open("ConstantTexture.ppm");
 	int width = 1920;
 	int height = 1080;
 	int samples = 100;	// samples per pixel
 
 	
-/*	hitable *list[4];
+	hitable *list[4];
 	// Origin, radius, material(color)
-	list[0] = new movingSphere(vec(0, 0, -1), vec(0, 0.5, -1), 0.0, 1.0, 0.5, new metal(vec(0.8, 0.3, 0.3), 0.1));
+	list[0] = new sphere(vec(0, 0, -1), 0.5, new lambertian(new constantTexture(vec(0.8, 0.3, 0.3))));
 	//list[0] = new sphere(vec(0, 0, -1), 0.5, new lambertian(vec(0.8, 0.3, 0.3)));
-	list[1] = new sphere(vec(0, -100.5, -1), 100, new lambertian(vec(0.8, 0.8, 0.0)));
-	list[2] = new movingSphere(vec(1, 0, -1), vec(1, 0.5, -1), 0.0, 1.0, 0.5, new metal(vec(0.8, 0.6, 0.2), 0.3));
-	list[3] = new movingSphere(vec(-1, 0, -1), vec(-1, 0.5, -1), 0.0, 1.0, 0.5, new dielectric(1.5));
-	hitable *world = new hitable_list(list, 4); */
+	list[1] = new sphere(vec(0, -100.5, -1), 100, new lambertian(new constantTexture(vec(0.8, 0.8, 0.0))));
+	list[2] = new sphere(vec(1, 0, -1), 0.5, new metal(vec(0.8, 0.6, 0.2), 0.3));
+	list[3] = new sphere(vec(-1, 0, -1), 0.5, new dielectric(1.5));
+	hitable *world = new bvh_node(list, 4, 0.0, 1.0); 
 
-	hitable *world = randomScene();
+	//hitable *world = randomScene();
 
 	vec UP(0, 1, 0);
 	vec lookFrom(9, 3, -8);
