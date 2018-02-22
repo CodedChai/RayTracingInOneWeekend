@@ -1,6 +1,8 @@
 #ifndef TEXTUREH
 #define TEXTUREH
 
+#include "perlin.h"
+
 class texture {
 public:
 	virtual vec value(float u, float v, const vec& p) const = 0;
@@ -32,6 +34,21 @@ public:
 
 	texture *tex0;
 	texture *tex1;
+};
+
+class perlinTexture : public texture {
+public:
+	perlinTexture() { scale = 1; }
+	perlinTexture(float sc) : scale(sc) {}
+	virtual vec value(float u, float v, const vec& p) const {
+		//return vec(1, 1, 1) * noise.noise(scale * p);
+		//return vec(1, 1, 1) * 0.5 * (1 + noise.turb(scale * p));
+		//return vec(1, 1, 1) * noise.turb(scale * p);
+		return vec(1, 1, 1)*0.5*(1 + sin(scale*p.z() + 5 * noise.turb(scale * p)));
+	}
+
+	perlin noise;
+	float scale;
 };
 
 

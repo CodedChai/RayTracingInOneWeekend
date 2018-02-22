@@ -47,6 +47,14 @@ hitable *twoSpheres() {
 	return new hitable_list(list, 2);
 }
 
+hitable *twoPerlinSpheres() {
+	texture *perTex = new perlinTexture (4);
+	hitable **list = new hitable*[2];
+	list[0] = new sphere(vec(0, -1000, 0), 1000, new lambertian(perTex));
+	list[1] = new sphere(vec(0, 2, 0), 2, new lambertian(perTex));
+	return new hitable_list(list, 2);
+}
+
 hitable *randomScene() {
 	int n = 500;
 	hitable **list = new hitable*[n + 1];
@@ -89,10 +97,10 @@ int main() {
 	//cout << time(NULL);
 	srand((unsigned)time(NULL));
 	ofstream imgOut;
-	imgOut.open("TwoTexturedSpheres.ppm");
+	imgOut.open("TwoPerlinSpheres.ppm");
 	int width = 1920;
 	int height = 1080;
-	int samples = 100;	// samples per pixel
+	int samples = 300;	// samples per pixel
 
 	
 	hitable *list[4];
@@ -107,15 +115,16 @@ int main() {
 	list[3] = new sphere(vec(-1, 0, -1), 0.5, new dielectric(1.5));
 	//hitable *world = new bvh_node(list, 4, 0.0, 1.0); 
 
-	hitable *world = twoSpheres();
+	//hitable *world = twoSpheres();
 	//hitable *world = randomScene();
+	hitable *world = twoPerlinSpheres();
 
 	vec UP(0, 1, 0);
 	vec lookFrom(13, 2, 3);
 	vec lookAt(0, 0, 0);
 	float dist_to_focus = 10;
 	float aperture = 0.0;
-	float vFoV = 20;
+	float vFoV = 30;
 	float aspect = float(width) / float(height);
 	int pixels = width * height;
 	vec* outCols = new vec[pixels]();
