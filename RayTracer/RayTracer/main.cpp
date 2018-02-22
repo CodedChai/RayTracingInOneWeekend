@@ -8,9 +8,11 @@
 #include "material.h"
 #include "imageTexture.h"
 #include <omp.h>
+#include "axisAlignedRectangle.h"
 #include "bvh.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#define MAX_DEPTH 50
 
 using namespace std;
 
@@ -26,23 +28,35 @@ vec color(const ray& r, hitable *world, int depth) {
 	if (world->hit(r, 0.0001, FLT_MAX, rec)) {
 		ray scattered;
 		vec attenuation;
-		if (depth < 50 && rec.mat_ptr->scatter(r, rec, attenuation, scattered)) {
-			//return attenuation * color(scattered, world, depth + 1);
-			return attenuation;
+		vec emitted = rec.mat_ptr->emitted(rec.u, rec.v, rec.p);
+		if (depth < MAX_DEPTH && rec.mat_ptr->scatter(r, rec, attenuation, scattered)) {
+			return emitted + attenuation * color(scattered, world, depth + 1);
+			//return attenuation;
 		}
 		else {
-			return vec(0, 0, 0);
+			return emitted;
 		}
 	}
 	else {
 		return vec(0, 0, 0);
-		vec unit_direction = unitVector(r.direction());
-		float t = 0.5 * (unit_direction.y() + 1.0);
-		return (1.0 - t) * vec(1.0, 1.0, 1.0) + t * vec(0.5, 0.7, 1.0);
+		// This is for the gradient 
+		//vec unit_direction = unitVector(r.direction());
+		//float t = 0.5 * (unit_direction.y() + 1.0);
+		//return (1.0 - t) * vec(1.0, 1.0, 1.0) + t * vec(0.5, 0.7, 1.0);
 	}
 }
 
-// For this to work color has to return the attenuation only.
+hitable *simpleLight() {
+	texture *perTex = new perlinTexture(2);
+	hitable **list = new hitable*[4];
+	list[0] = new sphere(vec(0, -1000, 0), 1000, new lambertian(perTex));
+	list[1] = new sphere(vec(0, 2, 0), 2, new lambertian(perTex));
+	list[2] = new sphere(vec(0, 6, 0), 1, new diffuseLight(new constantTexture(vec(4,4,4))));
+	list[3] = new xyRect(3, 5, 1, 3, -2, new diffuseLight(new constantTexture(vec(4, 4, 4))));
+	return new bvh_node(list, 4, startTime, endTime);
+}
+
+// For this to work, color has to return the attenuation only.
 hitable *earth() {
 	int nx, ny, nn;
 	unsigned char *texData = stbi_load("earthmap.jpg", &nx, &ny, &nn, 0);
@@ -103,17 +117,17 @@ hitable *randomScene() {
 	list[i++] = new sphere(vec(4, 1, 0), 1.0, new metal(vec(0.7, 0.6, 0.5), 0.0));
 
 	//return new hitable_list(list, i);
-	return new bvh_node(list, i, 0.0, 1.0);
+	return new bvh_node(list, i, startTime, endTime);
 }
 
 int main() {
 	//cout << time(NULL);
 	srand((unsigned)time(NULL));
 	ofstream imgOut;
-	imgOut.open("ImageTexture.ppm");
-	int width = 1280;
-	int height = 720;
-	int samples = 5;	// samples per pixel
+	imgOut.open("RectangleAndSphereLight.ppm");
+	int width = 1920;
+	int height = 1080;
+	int samples = 250;	// samples per pixel
 
 	
 	hitable *list[4];
@@ -131,14 +145,15 @@ int main() {
 	//hitable *world = twoSpheres();
 	//hitable *world = randomScene();
 	//hitable *world = twoPerlinSpheres();
-	hitable *world = earth();
+	//hitable *world = earth();
+	hitable *world = simpleLight();
 
 	vec UP(0, 1, 0);
 	vec lookFrom(13, 2, 3);
-	vec lookAt(0, 0, 0);
-	float dist_to_focus = 10;
+	vec lookAt(0, 1, 0);
+	float dist_to_focus = 13;
 	float aperture = 0.0;
-	float vFoV = 30;
+	float vFoV = 60;
 	float aspect = float(width) / float(height);
 	int pixels = width * height;
 	vec* outCols = new vec[pixels]();

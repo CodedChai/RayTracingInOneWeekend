@@ -37,6 +37,9 @@ float schlick(float cosine, float ref_idx) {
 class material {
 public:
 	virtual bool scatter(const ray& r_in, const hit_record& rec, vec& attenuation, ray& scattered) const = 0;
+	virtual vec emitted(float u, float v, const vec& p) const {
+		return vec(0, 0, 0);
+	}
 };
 
 class lambertian : public material {
@@ -114,6 +117,20 @@ public:
 	}
 
 	float ref_idx;
+};
+
+class diffuseLight : public material {
+public:
+	diffuseLight(texture *a) : emit(a) {}
+	virtual bool scatter(const ray& r_in, const hit_record& rec, vec& attenuation, ray& scattered) const {
+		return false;
+	}
+
+	virtual vec emitted(float u, float v, const vec& p) const {
+		return emit->value(u, v, p);
+	}
+
+	texture *emit;
 };
 
 #endif
