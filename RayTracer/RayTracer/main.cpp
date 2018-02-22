@@ -48,12 +48,15 @@ vec color(const ray& r, hitable *world, int depth) {
 
 hitable *simpleLight() {
 	texture *perTex = new perlinTexture(2);
-	hitable **list = new hitable*[4];
+	hitable **list = new hitable*[5];
 	list[0] = new sphere(vec(0, -1000, 0), 1000, new lambertian(perTex));
 	list[1] = new sphere(vec(0, 2, 0), 2, new lambertian(perTex));
-	list[2] = new sphere(vec(0, 6, 0), 1, new diffuseLight(new constantTexture(vec(4,4,4))));
-	list[3] = new xyRect(3, 5, 1, 3, -2, new diffuseLight(new constantTexture(vec(4, 4, 4))));
-	return new bvh_node(list, 4, startTime, endTime);
+	//list[2] = new sphere(vec(0, 6, 0), 1, new diffuseLight(new constantTexture(vec(4,4,4))));
+	list[2] = new xyRect(3, 5, 1, 3, -2, new diffuseLight(new constantTexture(vec(4, 0, 0))));
+	list[3] = new xzRect(4, 6, 2, 4, 4, new diffuseLight(new constantTexture(vec(0, 4, 0))));
+	list[4] = new yzRect(0, 4, 1, 4, -.5, new diffuseLight(new constantTexture(vec(0, 0, 6))));
+
+	return new bvh_node(list, 5, startTime, endTime);
 }
 
 // For this to work, color has to return the attenuation only.
@@ -124,10 +127,10 @@ int main() {
 	//cout << time(NULL);
 	srand((unsigned)time(NULL));
 	ofstream imgOut;
-	imgOut.open("RectangleAndSphereLight.ppm");
-	int width = 1920;
-	int height = 1080;
-	int samples = 250;	// samples per pixel
+	imgOut.open("ThreePlanes.ppm");
+	int width = 1280;
+	int height = 720;
+	int samples = 200;	// samples per pixel
 
 	
 	hitable *list[4];
@@ -149,11 +152,11 @@ int main() {
 	hitable *world = simpleLight();
 
 	vec UP(0, 1, 0);
-	vec lookFrom(13, 2, 3);
+	vec lookFrom(8, 2, 6);
 	vec lookAt(0, 1, 0);
 	float dist_to_focus = 13;
 	float aperture = 0.0;
-	float vFoV = 60;
+	float vFoV = 70;
 	float aspect = float(width) / float(height);
 	int pixels = width * height;
 	vec* outCols = new vec[pixels]();
@@ -180,8 +183,8 @@ int main() {
 			float ib = int(255.99 * col[2]);
 
 			//imgOut << ir << " " << ig << " " << ib << "\n";
-
-			outCols[i * height + j] = vec(ir, ig, ib);
+			// The ffmin is because the emissive textures are too bright and recorded over 255
+			outCols[i * height + j] = vec(ffmin(ir,255), ffmin(ig,255), ffmin(ib,255));
 
 			
 		}
