@@ -42,7 +42,7 @@ public:
 		for (int i = 0; i < depth; i++) {
 			accum += weight * noise(temp);
 			weight *= 0.5;
-			temp *= 0.2;
+			temp *= 2.0;
 		}
 		return fabs(accum);
 	}

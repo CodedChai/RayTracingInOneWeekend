@@ -6,8 +6,11 @@
 #include "camera.h"
 #include <time.h>
 #include "material.h"
+#include "imageTexture.h"
 #include <omp.h>
 #include "bvh.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 using namespace std;
 
@@ -24,17 +27,27 @@ vec color(const ray& r, hitable *world, int depth) {
 		ray scattered;
 		vec attenuation;
 		if (depth < 50 && rec.mat_ptr->scatter(r, rec, attenuation, scattered)) {
-			return attenuation * color(scattered, world, depth + 1);
+			//return attenuation * color(scattered, world, depth + 1);
+			return attenuation;
 		}
 		else {
 			return vec(0, 0, 0);
 		}
 	}
 	else {
+		return vec(0, 0, 0);
 		vec unit_direction = unitVector(r.direction());
 		float t = 0.5 * (unit_direction.y() + 1.0);
 		return (1.0 - t) * vec(1.0, 1.0, 1.0) + t * vec(0.5, 0.7, 1.0);
 	}
+}
+
+// For this to work color has to return the attenuation only.
+hitable *earth() {
+	int nx, ny, nn;
+	unsigned char *texData = stbi_load("earthmap.jpg", &nx, &ny, &nn, 0);
+	material *mat = new lambertian(new imageTexture(texData, nx, ny));
+	return new sphere(vec(0, 0, 0), 2, mat);
 }
 
 hitable *twoSpheres() {
@@ -48,7 +61,7 @@ hitable *twoSpheres() {
 }
 
 hitable *twoPerlinSpheres() {
-	texture *perTex = new perlinTexture (4);
+	texture *perTex = new perlinTexture (2);
 	hitable **list = new hitable*[2];
 	list[0] = new sphere(vec(0, -1000, 0), 1000, new lambertian(perTex));
 	list[1] = new sphere(vec(0, 2, 0), 2, new lambertian(perTex));
@@ -97,10 +110,10 @@ int main() {
 	//cout << time(NULL);
 	srand((unsigned)time(NULL));
 	ofstream imgOut;
-	imgOut.open("TwoPerlinSpheres.ppm");
-	int width = 1920;
-	int height = 1080;
-	int samples = 300;	// samples per pixel
+	imgOut.open("ImageTexture.ppm");
+	int width = 1280;
+	int height = 720;
+	int samples = 5;	// samples per pixel
 
 	
 	hitable *list[4];
@@ -117,7 +130,8 @@ int main() {
 
 	//hitable *world = twoSpheres();
 	//hitable *world = randomScene();
-	hitable *world = twoPerlinSpheres();
+	//hitable *world = twoPerlinSpheres();
+	hitable *world = earth();
 
 	vec UP(0, 1, 0);
 	vec lookFrom(13, 2, 3);
