@@ -11,6 +11,7 @@
 #include "axisAlignedRectangle.h"
 #include "bvh.h"
 #include "box.h"
+#include "constantMedium.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -66,6 +67,28 @@ hitable *cornellBox() {
 	list[i++] = new flipNormals(new xyRect(0, 555, 0, 555, 555, grey));
 	list[i++] = new translate(new yRotate(new box(vec(0, 0, 0), vec(165, 165, 165), grey), -18), vec(130, 0, 65));
 	list[i++] = new translate(new yRotate(new box(vec(0, 0, 0), vec(165, 330, 165), grey), 15), vec(265, 0, 195));
+
+	return new bvh_node(list, i, startTime, endTime);
+}
+
+hitable *cornellBoxSmoke() {
+	hitable **list = new hitable*[8];
+	int i = 0;
+	material *red = new lambertian(new constantTexture(vec(0.65, 0.05, 0.05)));
+	material *grey = new lambertian(new constantTexture(vec(0.73, 0.73, 0.73)));
+	material *green = new lambertian(new constantTexture(vec(0.12, 0.45, 0.15)));
+	material *light = new diffuseLight(new constantTexture(vec(10, 10, 10)));
+	list[i++] = new flipNormals(new yzRect(0, 555, 0, 555, 555, green));
+	list[i++] = new yzRect(0, 555, 0, 555, 0, red);
+	list[i++] = new xzRect(113, 443, 127, 432, 554, light);
+	//list[i++] = new flipNormals(new xzRect(200, 356, 214, 345, 400, light));
+	list[i++] = new flipNormals(new xzRect(0, 555, 0, 555, 555, grey));
+	list[i++] = new xzRect(0, 555, 0, 555, 0, grey);
+	list[i++] = new flipNormals(new xyRect(0, 555, 0, 555, 555, grey));
+	hitable *box0 = new translate(new yRotate(new box(vec(0, 0, 0), vec(165, 165, 165), grey), -18), vec(130, 0, 65));
+	hitable *box1 = new translate(new yRotate(new box(vec(0, 0, 0), vec(165, 330, 165), grey), 15), vec(265, 0, 195));
+	list[i++] = new constantMedium(box0, 0.007, new constantTexture(vec(1.0, 1.0, 1.0)));
+	list[i++] = new constantMedium(box1, 0.013, new constantTexture(vec(0.0, 0.0, 0.0)));
 
 	return new bvh_node(list, i, startTime, endTime);
 }
@@ -151,10 +174,10 @@ int main() {
 	//cout << time(NULL);
 	srand((unsigned)time(NULL));
 	ofstream imgOut;
-	imgOut.open("CornellBox5.ppm");
+	imgOut.open("CornellBox5 Volumes.ppm");
 	int width = 1280;
 	int height = 720;
-	int samples = 200;	// samples per pixel
+	int samples = 4000;	// samples per pixel
 
 	
 	hitable *list[4];
@@ -174,7 +197,9 @@ int main() {
 	//hitable *world = twoPerlinSpheres();
 	//hitable *world = earth();
 	//hitable *world = simpleLight();
-	hitable *world = cornellBox();
+	//hitable *world = cornellBox();
+	hitable *world = cornellBoxSmoke();
+
 
 	vec UP(0, 1, 0);
 	vec lookFrom(278, 278, -800);
