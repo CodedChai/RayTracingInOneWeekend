@@ -12,6 +12,9 @@
 #include "bvh.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
+
 #define MAX_DEPTH 50
 
 using namespace std;
@@ -44,6 +47,21 @@ vec color(const ray& r, hitable *world, int depth) {
 		//float t = 0.5 * (unit_direction.y() + 1.0);
 		//return (1.0 - t) * vec(1.0, 1.0, 1.0) + t * vec(0.5, 0.7, 1.0);
 	}
+}
+
+hitable *cornellBox() {
+	hitable **list = new hitable*[6];
+	int i = 0;
+	material *red = new lambertian(new constantTexture(vec(0.65, 0.05, 0.05)));
+	material *grey = new lambertian(new constantTexture(vec(0.73, 0.73, 0.73)));
+	material *green = new lambertian(new constantTexture(vec(0.12, 0.45, 0.15)));
+	material *light = new diffuseLight(new constantTexture(vec(60, 60, 60)));
+	list[i++] = new yzRect(0, 555, 0, 555, 555, green);
+	list[i++] = new yzRect(0, 555, 0, 555, 0, red);
+	list[i++] = new xzRect(213, 343, 227, 332, 554, light);
+	list[i++] = new xzRect(0, 555, 0, 555, 0, grey);
+	list[i++] = new xyRect(0, 555, 0, 555, 555, grey);
+	return new bvh_node(list, i, startTime, endTime);
 }
 
 hitable *simpleLight() {
@@ -127,10 +145,10 @@ int main() {
 	//cout << time(NULL);
 	srand((unsigned)time(NULL));
 	ofstream imgOut;
-	imgOut.open("ThreePlanes.ppm");
+	imgOut.open("FirstCornellBox.ppm");
 	int width = 1280;
 	int height = 720;
-	int samples = 200;	// samples per pixel
+	int samples = 1500;	// samples per pixel
 
 	
 	hitable *list[4];
@@ -149,14 +167,15 @@ int main() {
 	//hitable *world = randomScene();
 	//hitable *world = twoPerlinSpheres();
 	//hitable *world = earth();
-	hitable *world = simpleLight();
+	//hitable *world = simpleLight();
+	hitable *world = cornellBox();
 
 	vec UP(0, 1, 0);
-	vec lookFrom(8, 2, 6);
-	vec lookAt(0, 1, 0);
+	vec lookFrom(278, 278, -800);
+	vec lookAt(278, 278, 0);
 	float dist_to_focus = 13;
 	float aperture = 0.0;
-	float vFoV = 70;
+	float vFoV = 40;
 	float aspect = float(width) / float(height);
 	int pixels = width * height;
 	vec* outCols = new vec[pixels]();
@@ -196,7 +215,6 @@ int main() {
 
 		}
 	}
-
 
 	imgOut.close();
 	return 0;
