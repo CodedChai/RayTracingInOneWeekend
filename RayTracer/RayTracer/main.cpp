@@ -56,16 +56,16 @@ hitable *cornellBox() {
 	material *red = new lambertian(new constantTexture(vec(0.65, 0.05, 0.05)));
 	material *grey = new lambertian(new constantTexture(vec(0.73, 0.73, 0.73)));
 	material *green = new lambertian(new constantTexture(vec(0.12, 0.45, 0.15)));
-	material *light = new diffuseLight(new constantTexture(vec(15, 15, 15)));
+	material *light = new diffuseLight(new constantTexture(vec(10, 10, 10)));
 	list[i++] = new flipNormals(new yzRect(0, 555, 0, 555, 555, green));
 	list[i++] = new yzRect(0, 555, 0, 555, 0, red);
-	list[i++] = new xzRect(113, 443, 127, 432, 540, light);
+	list[i++] = new xzRect(113, 443, 127, 432, 554, light);
 	//list[i++] = new flipNormals(new xzRect(200, 356, 214, 345, 400, light));
 	list[i++] = new flipNormals(new xzRect(0, 555, 0, 555, 555, grey));
 	list[i++] = new xzRect(0, 555, 0, 555, 0, grey);
 	list[i++] = new flipNormals(new xyRect(0, 555, 0, 555, 555, grey));
-	list[i++] = new box(vec(130, 0, 65), vec(295, 165, 230), grey);
-	list[i++] = new box(vec(265, 0, 295), vec(430, 330, 460), grey);
+	list[i++] = new translate(new yRotate(new box(vec(0, 0, 0), vec(165, 165, 165), grey), -18), vec(130, 0, 65));
+	list[i++] = new translate(new yRotate(new box(vec(0, 0, 0), vec(165, 330, 165), grey), 15), vec(265, 0, 195));
 
 	return new bvh_node(list, i, startTime, endTime);
 }
@@ -151,10 +151,10 @@ int main() {
 	//cout << time(NULL);
 	srand((unsigned)time(NULL));
 	ofstream imgOut;
-	imgOut.open("CornellBoxWithBoxes.ppm");
+	imgOut.open("CornellBox5.ppm");
 	int width = 1280;
 	int height = 720;
-	int samples = 3000;	// samples per pixel
+	int samples = 200;	// samples per pixel
 
 	
 	hitable *list[4];
