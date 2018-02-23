@@ -10,6 +10,7 @@
 #include <omp.h>
 #include "axisAlignedRectangle.h"
 #include "bvh.h"
+#include "box.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -50,7 +51,7 @@ vec color(const ray& r, hitable *world, int depth) {
 }
 
 hitable *cornellBox() {
-	hitable **list = new hitable*[6];
+	hitable **list = new hitable*[8];
 	int i = 0;
 	material *red = new lambertian(new constantTexture(vec(0.65, 0.05, 0.05)));
 	material *grey = new lambertian(new constantTexture(vec(0.73, 0.73, 0.73)));
@@ -63,7 +64,10 @@ hitable *cornellBox() {
 	list[i++] = new flipNormals(new xzRect(0, 555, 0, 555, 555, grey));
 	list[i++] = new xzRect(0, 555, 0, 555, 0, grey);
 	list[i++] = new flipNormals(new xyRect(0, 555, 0, 555, 555, grey));
-	return new hitable_list(list, i);
+	list[i++] = new box(vec(130, 0, 65), vec(295, 165, 230), grey);
+	list[i++] = new box(vec(265, 0, 295), vec(430, 330, 460), grey);
+
+	return new bvh_node(list, i, startTime, endTime);
 }
 
 hitable *simpleLight() {
@@ -147,10 +151,10 @@ int main() {
 	//cout << time(NULL);
 	srand((unsigned)time(NULL));
 	ofstream imgOut;
-	imgOut.open("SecondCornellBox.ppm");
+	imgOut.open("CornellBoxWithBoxes.ppm");
 	int width = 1280;
 	int height = 720;
-	int samples = 4000;	// samples per pixel
+	int samples = 3000;	// samples per pixel
 
 	
 	hitable *list[4];
