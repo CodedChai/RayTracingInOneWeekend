@@ -132,6 +132,64 @@ hitable *twoPerlinSpheres() {
 	return new hitable_list(list, 2);
 }
 
+hitable *book2Final() {
+	int numBoxes = 20;
+	float halfSceneWidth = 1000;
+	float boxWidth = (2 * halfSceneWidth) / numBoxes;
+	hitable **list = new hitable*[30];
+	hitable **boxList = new hitable*[10000];
+	hitable **sphereList = new hitable*[10000];
+	material *white = new lambertian(new constantTexture(vec(0.73, 0.73, 0.73)));
+	material *ground = new lambertian(new constantTexture(vec(0.48, 0.83, 0.53)));
+	material *light = new diffuseLight(new constantTexture(vec(7, 7, 7)));
+	int nx, ny, nn;
+	unsigned char *texData = stbi_load("earthmap.jpg", &nx, &ny, &nn, 0);
+	int numSpheres = 1000;
+	vec center(400, 400, 200);
+	int listSize = 0;
+	int sphereContainerSize = 165;
+	int b = 0;
+	for (int i = 0; i < numBoxes; i++) {
+		for (int j = 0; j < numBoxes; j++) {
+			float x0 = -halfSceneWidth + i * boxWidth;
+			float z0 = -halfSceneWidth + j * boxWidth;
+			float y0 = 0;
+			float x1 = x0 + boxWidth;
+			float y1 = 100 * (myRand() + 0.01);
+			float z1 = z0 + boxWidth;
+			boxList[b++] = new box(vec(x0, y0, z0), vec(x1, y1, z1), ground);
+		}
+	}
+
+	list[listSize++] = new bvh_node(boxList, b, startTime, endTime);
+	list[listSize++] = new xzRect(123, 423, 147, 412, 554, light);
+	list[listSize++] = new movingSphere(center, center + vec(30, 0, 0), startTime, endTime, 50, new lambertian(new constantTexture(vec(0.7, 0.3, 0.1))));
+	list[listSize++] = new sphere(vec(260, 150, 45), 50, new dielectric(1.5));
+	list[listSize++] = new sphere(vec(0, 150, 145), 50, new metal(vec(0.8, 0.8, 0.9), 10.0));
+	list[listSize++] = new sphere(vec(105, 150, 145), 50, new metal(vec(0.7, 0.6, 0.5), 0.1));
+
+	// Create a fake subsurface reflection sphere
+	hitable *boundary = new sphere(vec(350, 150, 145), 70, new dielectric(1.5));
+	list[listSize++] = boundary;
+	list[listSize++] = new constantMedium(boundary, 0.2, new constantTexture(vec(0.2, 0.4, 0.9)));
+
+	// create thin mist over everything
+	boundary = new sphere(vec(0, 0, 0), 5000, new dielectric(1.5));
+	list[listSize++] = new constantMedium(boundary, 0.0001, new constantTexture(vec(0.73, 0.73, 0.73)));
+	material *emat = new lambertian(new imageTexture(texData, nx, ny));
+	list[listSize++] = new sphere(vec(400, 200, 100), 100, emat);
+	texture *perTex = new perlinTexture(0.1);
+	list[listSize++] = new sphere(vec(220, 280, 300), 80, new lambertian(perTex));
+#pragma omp parallel for
+	for (int i = 0; i < numSpheres; i++) {
+		sphereList[i] = new sphere(vec(sphereContainerSize * myRand(), sphereContainerSize * myRand(), sphereContainerSize * myRand()), 10, white);
+	}
+
+	list[listSize++] = new translate(new yRotate(new bvh_node(sphereList, numSpheres, startTime, endTime), 15), vec(-100, 270, 395));
+
+	return new bvh_node(list, listSize, startTime, endTime);
+}
+
 hitable *randomScene() {
 	int n = 500;
 	hitable **list = new hitable*[n + 1];
@@ -174,10 +232,10 @@ int main() {
 	//cout << time(NULL);
 	srand((unsigned)time(NULL));
 	ofstream imgOut;
-	imgOut.open("CornellBox5 Volumes.ppm");
-	int width = 1280;
-	int height = 720;
-	int samples = 4000;	// samples per pixel
+	imgOut.open("Book 2 Final Product.ppm");
+	int width = 1920;
+	int height = 1080;
+	int samples = 10000;	// samples per pixel
 
 	
 	hitable *list[4];
@@ -198,20 +256,21 @@ int main() {
 	//hitable *world = earth();
 	//hitable *world = simpleLight();
 	//hitable *world = cornellBox();
-	hitable *world = cornellBoxSmoke();
+	//hitable *world = cornellBoxSmoke();
+	hitable *world = book2Final();
 
 
 	vec UP(0, 1, 0);
-	vec lookFrom(278, 278, -800);
+	vec lookFrom(375, 278, -800);
 	vec lookAt(278, 278, 0);
-	float dist_to_focus = 13;
-	float aperture = 0.0;
+	float dist_to_focus = 500;
+	float aperture = 0.01;
 	float vFoV = 40;
 	float aspect = float(width) / float(height);
 	int pixels = width * height;
 	vec* outCols = new vec[pixels]();
 
-	camera cam(lookFrom, lookAt, UP, vFoV, aspect, aperture, dist_to_focus, 0.0, 1.0);
+	camera cam(lookFrom, lookAt, UP, vFoV, aspect, aperture, dist_to_focus, startTime, endTime);
 	imgOut << "P3\n" << width << " " << height << "\n255\n";
 #pragma omp parallel for
 	for (int j = height - 1; j >= 0; j--) {
