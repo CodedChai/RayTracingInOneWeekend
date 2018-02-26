@@ -164,12 +164,12 @@ hitable *book2Final() {
 	list[listSize++] = new bvh_node(boxList, b, startTime, endTime);
 	list[listSize++] = new xzRect(123, 423, 147, 412, 554, light);
 	list[listSize++] = new movingSphere(center, center + vec(30, 0, 0), startTime, endTime, 50, new lambertian(new constantTexture(vec(0.7, 0.3, 0.1))));
-	list[listSize++] = new sphere(vec(260, 150, 45), 50, new dielectric(1.5));
+	list[listSize++] = new sphere(vec(260, 400, 45), 50, new dielectric(1.5));
 	list[listSize++] = new sphere(vec(0, 150, 145), 50, new metal(vec(0.8, 0.8, 0.9), 10.0));
 	list[listSize++] = new sphere(vec(105, 150, 145), 50, new metal(vec(0.7, 0.6, 0.5), 0.1));
 
 	// Create a fake subsurface reflection sphere
-	hitable *boundary = new sphere(vec(350, 150, 145), 70, new dielectric(1.5));
+	hitable *boundary = new sphere(vec(300, 150, 145), 70, new dielectric(1.5));
 	list[listSize++] = boundary;
 	list[listSize++] = new constantMedium(boundary, 0.2, new constantTexture(vec(0.2, 0.4, 0.9)));
 
@@ -177,15 +177,15 @@ hitable *book2Final() {
 	boundary = new sphere(vec(0, 0, 0), 5000, new dielectric(1.5));
 	list[listSize++] = new constantMedium(boundary, 0.0001, new constantTexture(vec(0.73, 0.73, 0.73)));
 	material *emat = new lambertian(new imageTexture(texData, nx, ny));
-	list[listSize++] = new sphere(vec(400, 200, 100), 100, emat);
+	list[listSize++] = new sphere(vec(480, 200, 300), 100, emat);
 	texture *perTex = new perlinTexture(0.1);
-	list[listSize++] = new sphere(vec(220, 280, 300), 80, new lambertian(perTex));
+	list[listSize++] = new sphere(vec(200, 280, 300), 80, new lambertian(perTex));
 #pragma omp parallel for
 	for (int i = 0; i < numSpheres; i++) {
 		sphereList[i] = new sphere(vec(sphereContainerSize * myRand(), sphereContainerSize * myRand(), sphereContainerSize * myRand()), 10, white);
 	}
 
-	list[listSize++] = new translate(new yRotate(new bvh_node(sphereList, numSpheres, startTime, endTime), 15), vec(-100, 270, 395));
+	list[listSize++] = new translate(new yRotate(new bvh_node(sphereList, numSpheres, startTime, endTime), 15), vec(-90, 270, 395));
 
 	return new bvh_node(list, listSize, startTime, endTime);
 }
@@ -232,10 +232,10 @@ int main() {
 	//cout << time(NULL);
 	srand((unsigned)time(NULL));
 	ofstream imgOut;
-	imgOut.open("Book 2 Final Product.ppm");
+	imgOut.open("Book 2 Final Product 2.ppm");
 	int width = 1920;
 	int height = 1080;
-	int samples = 10000;	// samples per pixel
+	int samples = 100;	// samples per pixel
 
 	
 	hitable *list[4];
