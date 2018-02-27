@@ -235,7 +235,7 @@ int main() {
 	imgOut.open("Book 2 Final Product 2.ppm");
 	int width = 1920;
 	int height = 1080;
-	int samples = 100;	// samples per pixel
+	int samples = 10000;	// samples per pixel
 
 	
 	hitable *list[4];
