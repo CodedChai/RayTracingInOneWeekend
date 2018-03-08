@@ -51,6 +51,26 @@ vec color(const ray& r, hitable *world, int depth) {
 	}
 }
 
+hitable *cornellBoxTest() {
+	int i = 0;
+	hitable **list = new hitable*[8];
+	material *red = new lambertian(new constantTexture(vec(0.65, 0.05, 0.05)));
+	material *white = new lambertian(new constantTexture(vec(0.73, 0.73, 0.73)));
+	material *green = new lambertian(new constantTexture(vec(0.12, 0.45, 0.15)));
+	material *light = new diffuseLight(new constantTexture(vec(15, 15, 15)));
+
+	list[i++] = new flipNormals(new yzRect(0, 555, 0, 555, 555, green));
+	list[i++] = new yzRect(0, 555, 0, 555, 0, red);
+	list[i++] = new xzRect(213, 343, 227, 332, 554, light);
+	list[i++] = new flipNormals(new xzRect(0, 555, 0, 555, 555, white));
+	list[i++] = new xzRect(0, 555, 0, 555, 0, white);
+	list[i++] = new flipNormals(new xyRect(0, 555, 0, 555, 555, white));
+	list[i++] = new translate(new yRotate(new box(vec(0, 0, 0), vec(165, 165, 165), white), -18), vec(130, 0, 65));
+	list[i++] = new translate(new yRotate(new box(vec(0, 0, 0), vec(165, 330, 165), white), 15), vec(265, 0, 295));
+	return new hitable_list(list, i);
+
+}
+
 hitable *cornellBox() {
 	hitable **list = new hitable*[8];
 	int i = 0;
@@ -232,10 +252,10 @@ int main() {
 	//cout << time(NULL);
 	srand((unsigned)time(NULL));
 	ofstream imgOut;
-	imgOut.open("Book 2 Final Product 2.ppm");
-	int width = 1920;
-	int height = 1080;
-	int samples = 10000;	// samples per pixel
+	imgOut.open("Book 3 Start.ppm");
+	int width = 1000;
+	int height = 1000;
+	int samples = 5000;	// samples per pixel
 
 	
 	hitable *list[4];
@@ -257,20 +277,28 @@ int main() {
 	//hitable *world = simpleLight();
 	//hitable *world = cornellBox();
 	//hitable *world = cornellBoxSmoke();
-	hitable *world = book2Final();
+	//hitable *world = book2Final();
+	hitable *world = cornellBoxTest();
 
 
 	vec UP(0, 1, 0);
-	vec lookFrom(375, 278, -800);
-	vec lookAt(278, 278, 0);
-	float dist_to_focus = 500;
-	float aperture = 0.01;
-	float vFoV = 40;
+	//vec lookFrom(375, 278, -800);
+	//vec lookAt(278, 278, 0);
+	//float dist_to_focus = 500;
+	//float aperture = 0.01;
+//	float vFoV = 40;
 	float aspect = float(width) / float(height);
 	int pixels = width * height;
 	vec* outCols = new vec[pixels]();
 
-	camera cam(lookFrom, lookAt, UP, vFoV, aspect, aperture, dist_to_focus, startTime, endTime);
+	//camera cam(lookFrom, lookAt, UP, vFoV, aspect, aperture, dist_to_focus, startTime, endTime);
+
+	vec lookFrom(278, 278, -800);
+	vec lookAt(278, 278, 0);
+	float distToFocus = 10.0;
+	float aperture = 0.0;
+	float vfov = 40.0;
+	camera cam(lookFrom, lookAt, vec(0, 1, 0), vfov, aspect, aperture, distToFocus, 0.0, 1.0);
 	imgOut << "P3\n" << width << " " << height << "\n255\n";
 #pragma omp parallel for
 	for (int j = height - 1; j >= 0; j--) {
